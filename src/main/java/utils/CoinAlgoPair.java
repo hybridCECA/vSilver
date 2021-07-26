@@ -20,6 +20,18 @@ public class CoinAlgoPair implements Comparable<CoinAlgoPair> {
         this.gains = gains;
     }
 
+    /*
+    @Override
+    public String toString() {
+        return "CoinAlgoPair{" +
+                "wtmCoin=" + wtmCoin +
+                ", nhAlgo=" + nhAlgo +
+                ", gains=" + gains +
+                '}';
+    }
+
+     */
+
     @Override
     public String toString() {
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
@@ -28,6 +40,8 @@ public class CoinAlgoPair implements Comparable<CoinAlgoPair> {
             obj.put("timestamp", timeStamp);
             obj.put("coin", wtmCoin.getName());
             obj.put("algo", nhAlgo.getAlgorithm());
+            obj.put("coinProfitability", wtmCoin.getProfitability());
+            obj.put("algoProfitability", nhAlgo.getProfitability());
             obj.put("gains", gains);
             return obj.toString();
         } catch (JSONException e) {

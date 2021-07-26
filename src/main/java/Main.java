@@ -1,4 +1,4 @@
-import nicehashapi.Algorithms;
+import nicehashapi.API;
 import nicehashapi.NicehashAlgorithm;
 import org.json.JSONException;
 import utils.CoinAlgoMatcher;
@@ -32,7 +32,7 @@ public class Main {
     }
 
     private static void printlogs() throws IOException, JSONException {
-        List<NicehashAlgorithm> algoList = Algorithms.getAlgoList();
+        List<NicehashAlgorithm> algoList = API.getAlgoList();
         List<WhatToMineCoin> coinList = Coins.getCoinList();
 
         List<CoinAlgoPair> list = new ArrayList<>();
@@ -59,14 +59,14 @@ public class Main {
             throw new RuntimeException("Wrong number of pairs! Check code");
         }
 
-        Collections.sort(list, Collections.reverseOrder());
+        list.sort(Collections.reverseOrder());
 
         for (CoinAlgoPair pair : list) {
             System.out.println(pair);
         }
 
-        // Unmatched
         /*
+        // Unmatched
         for (int i = 0; i < algoList.size(); i++) {
             if (!usedAlgos[i]) {
                 System.out.println(algoList.get(i));
@@ -77,6 +77,7 @@ public class Main {
                 System.out.println(coinList.get(i));
             }
         }
+
          */
 
     }
