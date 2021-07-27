@@ -1,5 +1,6 @@
 package whattomineapi;
 
+import utils.Conversion;
 import utils.JSON;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +20,17 @@ public class Coins {
         //removeUnprofitable();
 
         return coinList;
+    }
+
+    public static WhatToMineCoin getCoin(String coinName) throws IOException, JSONException {
+        List<WhatToMineCoin> coinList = Coins.getCoinList();
+        for (WhatToMineCoin coin : coinList) {
+            if (coin.getName().equals(coinName)) {
+                return coin;
+            }
+        }
+
+        throw new RuntimeException("Coin not found");
     }
 
     private static void removeUnprofitable() {
@@ -80,6 +92,6 @@ public class Coins {
             coinProps.put("exchange_rate", 1D);
         }
 
-        return 100E6 / coinProps.get("nethash") * coinProps.get("block_reward") / coinProps.get("block_time") * coinProps.get("exchange_rate") * 60 * 60 * 24;
+        return Conversion.BTC_TO_SATOSHIS / coinProps.get("nethash") * coinProps.get("block_reward") / coinProps.get("block_time") * coinProps.get("exchange_rate") * 60 * 60 * 24;
     }
 }

@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 
 public class Price {
     public static void main(String[] args) throws IOException, JSONException {
-        System.out.println(getFulfillPrice(0.1, "cuckoocycle"));
+        System.out.println(getFulfillPrice(0.1, "cryptonightr", "USA"));
     }
 
     /*
@@ -53,9 +53,10 @@ public class Price {
 
      */
 
-    private static double getFulfillPrice(double fulfillPrice, String algoName) throws IOException, JSONException {
+    public static double getFulfillPrice(double fulfillPrice, String algoName, String market) throws IOException, JSONException {
         JSONObject json = JSON.readJsonFromUrl("https://api2.nicehash.com/main/api/v2/hashpower/orderBook?algorithm=" + algoName.toUpperCase());
-        JSONArray orders = json.getJSONObject("stats").getJSONObject("EU").getJSONArray("orders");
+        JSONArray orders = json.getJSONObject("stats").getJSONObject(market).getJSONArray("orders");
+        System.out.println(json);
 
         List<NicehashOrder> list = new ArrayList<>();
         for (int i = 0; i < orders.length(); i++) {

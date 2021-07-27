@@ -1,4 +1,4 @@
-import nicehashapi.API;
+import nicehashapi.Api;
 import nicehashapi.NicehashAlgorithm;
 import org.json.JSONException;
 import utils.CoinAlgoMatcher;
@@ -32,7 +32,7 @@ public class Main {
     }
 
     private static void printlogs() throws IOException, JSONException {
-        List<NicehashAlgorithm> algoList = API.getAlgoList();
+        List<NicehashAlgorithm> algoList = Api.getAlgoList();
         List<WhatToMineCoin> coinList = Coins.getCoinList();
 
         List<CoinAlgoPair> list = new ArrayList<>();
