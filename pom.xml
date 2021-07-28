@@ -33,7 +33,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>Main</mainClass>
+                            <mainClass>AdjustBot</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import utils.Config;
+import utils.Conversion;
 import utils.JSON;
 
 import java.io.*;
@@ -26,17 +27,8 @@ public class Api {
         api = new HttpApi("https://api2.nicehash.com/", orgId, apiKey, apiSecret);
     }
 
-    public static void main(String[] args) throws JSONException {
-        NicehashOrder order = getOrder("a0e4ccec-24c0-4945-9eef-bb1888db1d35");
-        System.out.println(order.getPrice());
-        System.out.println(order.getSpeed());
-    }
-
-    public static void updateOrder(String id, double price, String displayMarketFactor, double marketFactor) throws IOException, JSONException {
-        DecimalFormat df = new DecimalFormat("##.####");
-        df.setRoundingMode(RoundingMode.HALF_EVEN);
-
-        String priceString = df.format(price);
+    public static void updateOrder(String id, int price, String displayMarketFactor, double marketFactor) throws IOException, JSONException {
+        String priceString = Conversion.intPriceToStringPrice(price);
         System.out.println("Submit price: " + priceString);
 
         JSONObject body = new JSONObject();
@@ -45,16 +37,38 @@ public class Api {
         body.put("marketFactor", marketFactor);
 
         String response = api.post("main/api/v2/hashpower/order/" + id + "/updatePriceAndLimit", body.toString(),  getTime(), true);
-        System.out.println(response);
+        System.out.println("Response: " + response);
     }
 
-    public static NicehashOrder getOrder(String id) throws JSONException {
-        String response = api.get("main/api/v2/hashpower/order/" + id, true, getTime());
-        JSONObject json = new JSONObject(response);
-        double price = json.getDouble("price");
-        double speed = json.getDouble("acceptedCurrentSpeed");
+    public static NicehashOrder getOrder(String id, String algoName, String market) throws JSONException, IOException {
+        List<NicehashOrder> orderbook = getOrderbook(algoName, market);
+        for (NicehashOrder order : orderbook) {
+            if (order.getId().equals(id)) {
+                return order;
+            }
+        }
 
-        return new NicehashOrder(price, speed);
+        throw new RuntimeException("Order not found");
+    }
+
+    public static List<NicehashOrder> getOrderbook(String algoName, String market) throws JSONException, IOException {
+        JSONObject json = JSON.readJsonFromUrl("https://api2.nicehash.com/main/api/v2/hashpower/orderBook?algorithm=" + algoName.toUpperCase());
+        JSONArray orders = json.getJSONObject("stats").getJSONObject(market).getJSONArray("orders");
+
+        List<NicehashOrder> list = new ArrayList<>();
+        for (int i = 0; i < orders.length(); i++) {
+            JSONObject order = orders.getJSONObject(i);
+            String priceString = order.getString("price");
+            int price = Conversion.stringPriceToIntPrice(priceString);
+            double speed = order.getDouble("payingSpeed");
+            String id = order.getString("id");
+            double limit = order.getDouble("limit");
+
+            NicehashOrder nhOrder = new NicehashOrder(price, speed, id, limit);
+            list.add(nhOrder);
+        }
+
+        return list;
     }
 
     public static List<NicehashAlgorithm> getAlgoList() throws IOException, JSONException {
@@ -80,5 +94,24 @@ public class Api {
 
     private static String getTime() {
         return Long.toString(Instant.now().toEpochMilli());
+    }
+
+    public static int getDownStep(String algoName) throws JSONException, IOException {
+        algoName = algoName.toLowerCase();
+
+        JSONObject json = JSON.readJsonFromUrl("https://api2.nicehash.com/main/api/v2/public/buy/info");
+        JSONArray algos = json.getJSONArray("miningAlgorithms");
+
+        for (int i = 0; i < algos.length(); i++) {
+            JSONObject algo = algos.getJSONObject(i);
+            String name = algo.getString("name");
+
+            if (name.toLowerCase().equals(algoName)) {
+                String downStepString = algo.getString("down_step");
+                return Conversion.stringPriceToIntPrice(downStepString);
+            }
+        }
+
+        throw new RuntimeException("Algo " + algoName + " not found!");
     }
 }

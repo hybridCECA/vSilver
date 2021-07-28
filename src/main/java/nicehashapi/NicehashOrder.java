@@ -1,15 +1,26 @@
 package nicehashapi;
 
 public class NicehashOrder implements Comparable<NicehashOrder> {
-    private double price;
+    private int price;
     private double speed;
+    private String id;
+    private double limit;
 
-    public NicehashOrder(double price, double speed) {
-        this.price = price;
-        this.speed = speed;
+    public NicehashOrder(NicehashOrder otherOrder) {
+        this.price = otherOrder.price;
+        this.speed = otherOrder.speed;
+        this.id = otherOrder.id;
+        this.limit = otherOrder.limit;
     }
 
-    public double getPrice() {
+    public NicehashOrder(int price, double speed, String id, double limit) {
+        this.price = price;
+        this.speed = speed;
+        this.id = id;
+        this.limit = limit;
+    }
+
+    public int getPrice() {
         return price;
     }
 
@@ -17,6 +28,17 @@ public class NicehashOrder implements Comparable<NicehashOrder> {
         return speed;
     }
 
+    public void setSpeed(double speed) {
+        this.speed = speed;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public double getLimit() {
+        return limit;
+    }
 
     @Override
     public int compareTo(NicehashOrder o) {
