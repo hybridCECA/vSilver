@@ -1,6 +1,6 @@
-package whattomineapi;
+package whattomine;
 
-import utils.Conversion;
+import utils.Conversions;
 import utils.JSON;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -92,6 +92,6 @@ public class Coins {
             coinProps.put("exchange_rate", 1D);
         }
 
-        return Conversion.BTC_TO_SATOSHIS / coinProps.get("nethash") * coinProps.get("block_reward") / coinProps.get("block_time") * coinProps.get("exchange_rate") * 60 * 60 * 24;
+        return Conversions.BTC_TO_SATOSHIS / coinProps.get("nethash") * coinProps.get("block_reward") / coinProps.get("block_time") * coinProps.get("exchange_rate") * 60 * 60 * 24;
     }
 }

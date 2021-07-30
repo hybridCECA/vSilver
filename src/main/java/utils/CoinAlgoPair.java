@@ -1,11 +1,10 @@
 package utils;
 
-import nicehashapi.NicehashAlgorithm;
+import nicehash.NicehashAlgorithm;
 import org.json.JSONException;
 import org.json.JSONObject;
-import whattomineapi.WhatToMineCoin;
+import whattomine.WhatToMineCoin;
 
-import java.security.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 

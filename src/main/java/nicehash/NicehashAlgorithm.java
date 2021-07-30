@@ -1,4 +1,4 @@
-package nicehashapi;
+package nicehash;
 
 public class NicehashAlgorithm {
     private String algorithm;

@@ -1,10 +1,10 @@
-import nicehashapi.Api;
-import nicehashapi.NicehashAlgorithm;
+import nicehash.Api;
+import nicehash.NicehashAlgorithm;
 import org.json.JSONException;
 import utils.CoinAlgoMatcher;
 import utils.CoinAlgoPair;
-import whattomineapi.Coins;
-import whattomineapi.WhatToMineCoin;
+import whattomine.Coins;
+import whattomine.WhatToMineCoin;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,10 +14,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class Main {
+public class ProfitabilityCollector {
     private static final int EXPECTED_PAIRS = 65;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, JSONException {
+        Api.loadConfig();
+
         ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 
         Runnable print = () -> {
@@ -37,16 +39,16 @@ public class Main {
 
         List<CoinAlgoPair> list = new ArrayList<>();
 
-        boolean[] usedAlgos = new boolean[algoList.size()];
-        boolean[] usedCoins = new boolean[coinList.size()];
+        //boolean[] usedAlgos = new boolean[algoList.size()];
+        //boolean[] usedCoins = new boolean[coinList.size()];
 
         for (int i = 0; i < algoList.size(); i++) {
             NicehashAlgorithm algo = algoList.get(i);
             for (int j = 0; j < coinList.size(); j++) {
                 WhatToMineCoin coin = coinList.get(j);
                 if (CoinAlgoMatcher.match(algo, coin)) {
-                    usedAlgos[i] = true;
-                    usedCoins[j] = true;
+                    //usedAlgos[i] = true;
+                    //usedCoins[j] = true;
 
                     double gains = coin.getProfitability() / algo.getProfitability() * 100;
                     list.add(new CoinAlgoPair(coin, algo, gains));

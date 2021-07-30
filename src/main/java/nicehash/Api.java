@@ -1,21 +1,26 @@
-package nicehashapi;
+package nicehash;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import utils.Config;
-import utils.Conversion;
-import utils.JSON;
+import utils.Conversions;
 
 import java.io.*;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Api {
     private static HttpApi api;
+
+    public static void main(String[] args) throws IOException, JSONException {
+        loadConfig();
+        List<NicehashOrder> orderbook = getOrderbook("SHA256", "EU");
+        for (NicehashOrder nicehashOrder : orderbook) {
+            System.out.println(nicehashOrder);
+        }
+    }
 
     public static void loadConfig() throws IOException, JSONException {
         JSONObject config = Config.getConfigObject();
@@ -27,8 +32,8 @@ public class Api {
         api = new HttpApi("https://api2.nicehash.com/", orgId, apiKey, apiSecret);
     }
 
-    public static void updateOrder(String id, int price, String displayMarketFactor, double marketFactor) throws IOException, JSONException {
-        String priceString = Conversion.intPriceToStringPrice(price);
+    public static void updateOrder(String id, int price, String displayMarketFactor, double marketFactor) throws JSONException {
+        String priceString = Conversions.intPriceToStringPrice(price);
         System.out.println("Submit price: " + priceString);
 
         JSONObject body = new JSONObject();
@@ -40,7 +45,7 @@ public class Api {
         System.out.println("Response: " + response);
     }
 
-    public static NicehashOrder getOrder(String id, String algoName, String market) throws JSONException, IOException {
+    public static NicehashOrder getOrder(String id, String algoName, String market) throws JSONException {
         List<NicehashOrder> orderbook = getOrderbook(algoName, market);
         for (NicehashOrder order : orderbook) {
             if (order.getId().equals(id)) {
@@ -51,18 +56,23 @@ public class Api {
         throw new RuntimeException("Order not found");
     }
 
-    public static List<NicehashOrder> getOrderbook(String algoName, String market) throws JSONException, IOException {
-        JSONObject json = JSON.readJsonFromUrl("https://api2.nicehash.com/main/api/v2/hashpower/orderBook?algorithm=" + algoName.toUpperCase());
+    public static List<NicehashOrder> getOrderbook(String algoName, String market) throws JSONException {
+        String response = api.get("main/api/v2/hashpower/orderBook?algorithm=" + algoName.toUpperCase());
+        JSONObject json = new JSONObject(response);
         JSONArray orders = json.getJSONObject("stats").getJSONObject(market).getJSONArray("orders");
 
         List<NicehashOrder> list = new ArrayList<>();
         for (int i = 0; i < orders.length(); i++) {
             JSONObject order = orders.getJSONObject(i);
             String priceString = order.getString("price");
-            int price = Conversion.stringPriceToIntPrice(priceString);
+            int price = Conversions.stringPriceToIntPrice(priceString);
             double speed = order.getDouble("payingSpeed");
             String id = order.getString("id");
+
             double limit = order.getDouble("limit");
+            if (limit == 0D) {
+                limit = Double.MAX_VALUE;
+            }
 
             NicehashOrder nhOrder = new NicehashOrder(price, speed, id, limit);
             list.add(nhOrder);
@@ -71,10 +81,11 @@ public class Api {
         return list;
     }
 
-    public static List<NicehashAlgorithm> getAlgoList() throws IOException, JSONException {
+    public static List<NicehashAlgorithm> getAlgoList() throws JSONException {
         List<NicehashAlgorithm> algoList = new ArrayList<>();
 
-        JSONObject json = JSON.readJsonFromUrl("https://api2.nicehash.com/main/api/v2/public/simplemultialgo/info");
+        String response = api.get("main/api/v2/public/simplemultialgo/info");
+        JSONObject json = new JSONObject(response);
         JSONArray algos = json.getJSONArray("miningAlgorithms");
         for (int i = 0; i < algos.length(); i++) {
             NicehashAlgorithm nicehashAlgo = new NicehashAlgorithm();
@@ -96,10 +107,11 @@ public class Api {
         return Long.toString(Instant.now().toEpochMilli());
     }
 
-    public static int getDownStep(String algoName) throws JSONException, IOException {
+    public static int getDownStep(String algoName) throws JSONException {
         algoName = algoName.toLowerCase();
 
-        JSONObject json = JSON.readJsonFromUrl("https://api2.nicehash.com/main/api/v2/public/buy/info");
+        String response = api.get("main/api/v2/public/buy/info");
+        JSONObject json = new JSONObject(response);
         JSONArray algos = json.getJSONArray("miningAlgorithms");
 
         for (int i = 0; i < algos.length(); i++) {
@@ -108,7 +120,7 @@ public class Api {
 
             if (name.toLowerCase().equals(algoName)) {
                 String downStepString = algo.getString("down_step");
-                return Conversion.stringPriceToIntPrice(downStepString);
+                return Conversions.stringPriceToIntPrice(downStepString);
             }
         }
 

@@ -1,15 +1,11 @@
 package utils;
 
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Map;
 
-public class Conversion {
+public class Conversions {
     public static final double BTC_TO_SATOSHIS = 100E6;
     public static final Map<Character, Double> marketFactorMap = Map.of('k', 1E3, 'm', 1E6);
-    public static enum HashPrefix {
-        KILO, MEGA, GIGA, TERA, PETA
-    }
     public static final int STRING_PRICE_TO_INT_PRICE = 10000;
 
     public static double unitProfitToDailyBTC(double unitProfitability, char hashPrefix) {

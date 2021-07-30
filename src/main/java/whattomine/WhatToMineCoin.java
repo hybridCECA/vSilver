@@ -1,6 +1,6 @@
-package whattomineapi;
+package whattomine;
 
-import nicehashapi.NicehashAlgorithm;
+import nicehash.NicehashAlgorithm;
 
 public class WhatToMineCoin extends NicehashAlgorithm {
     private String name;

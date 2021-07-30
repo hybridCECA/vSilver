@@ -1,4 +1,4 @@
-package nicehashapi;
+package nicehash;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.HttpResponse;

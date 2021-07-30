@@ -1,4 +1,4 @@
-package nicehashapi;
+package nicehash;
 
 public class NicehashOrder implements Comparable<NicehashOrder> {
     private int price;
@@ -38,6 +38,16 @@ public class NicehashOrder implements Comparable<NicehashOrder> {
 
     public double getLimit() {
         return limit;
+    }
+
+    @Override
+    public String toString() {
+        return "NicehashOrder{" +
+                "price=" + price +
+                ", speed=" + speed +
+                ", id='" + id + '\'' +
+                ", limit=" + limit +
+                '}';
     }
 
     @Override

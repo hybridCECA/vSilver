@@ -1,12 +1,16 @@
 {
-  "min_profit_margin": 1.1,
-  "coin_name": "Lethean",
-  "algo_name": "CRYPTONIGHTR",
-  "hash_unit": "m",
-  "order_id": "228f50b7-9b91-4c2b-b10e-67991347c536",
-  "fulfill_speed": 0.01,
-  "market": "EU",
   "orgId": "5da9b444-3a29-42e4-9d53-df564a6373f9",
   "apiKey": "73f73d71-377d-463d-8480-951d12c3abc5",
-  "apiSecret": "d0472f2d-0101-4b5d-8e6f-023e68538553411aebab-e1d1-4910-8c99-4e0da48a27dc"
+  "apiSecret": "d0472f2d-0101-4b5d-8e6f-023e68538553411aebab-e1d1-4910-8c99-4e0da48a27dc",
+  "orderBots": [
+    {
+      "min_profit_margin": 1.1,
+      "coin_name": "Lethean",
+      "algo_name": "CRYPTONIGHTR",
+      "hash_unit": "m",
+      "order_id": "228f50b7-9b91-4c2b-b10e-67991347c536",
+      "fulfill_speed": 0.01,
+      "market": "EU"
+    }
+  ]
 }
