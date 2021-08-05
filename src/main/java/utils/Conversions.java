@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class Conversions {
     public static final double BTC_TO_SATOSHIS = 100E6;
-    public static final Map<Character, Double> marketFactorMap = Map.of('k', 1E3, 'm', 1E6);
+    public static final Map<Character, Double> marketFactorMap = Map.of('k', 1E3, 'm', 1E6, 'g', 1E9, 't', 1e12);
     public static final int STRING_PRICE_TO_INT_PRICE = 10000;
 
     public static double unitProfitToDailyBTC(double unitProfitability, char hashPrefix) {
@@ -26,10 +26,14 @@ public class Conversions {
         return Math.toIntExact(Math.round(doublePrice));
     }
 
-    public static String intPriceToStringPrice(int price) {
-        double doublePrice = ((double) price) / STRING_PRICE_TO_INT_PRICE;
+    public static String doublePriceToStringPrice(double price) {
         DecimalFormat format = new DecimalFormat("#.####");
 
-        return format.format(doublePrice);
+        return format.format(price);
+    }
+
+    public static String intPriceToStringPrice(int price) {
+        double doublePrice = ((double) price) / STRING_PRICE_TO_INT_PRICE;
+        return doublePriceToStringPrice(doublePrice);
     }
 }

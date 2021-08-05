@@ -1,5 +1,6 @@
 package nicehash;
 
+import dataclasses.NicehashOrder;
 import org.json.JSONException;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ public class Price {
     }
 
     public static int getSweepPrice(double fulfillSpeed, String algoName, String market, String id) throws JSONException {
-        int step = -1 * Api.getDownStep(algoName);
+        int step = 1;
 
         List<NicehashOrder> orderbook = Api.getOrderbook(algoName, market);
         int maxPrice = orderbook.get(0).getPrice() + step;

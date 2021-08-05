@@ -1,15 +1,17 @@
 package nicehash;
+import dataclasses.NicehashOrder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import utils.Conversions;
 import whattomine.Coins;
-import whattomine.WhatToMineCoin;
+import dataclasses.WhatToMineCoin;
 
 import java.io.IOException;
 
 public class OrderBot {
     private double minProfitMargin;
     private double fulfillSpeed;
+    private double limit;
     private String coinName;
     private String algoName;
     private char hashUnit;
@@ -24,6 +26,7 @@ public class OrderBot {
         orderId = config.getString("order_id");
         market = config.getString("market");
         fulfillSpeed = config.getDouble("fulfill_speed");
+        limit = config.getDouble("limit");
     }
 
     public void run() {
@@ -39,23 +42,34 @@ public class OrderBot {
             System.out.println("Price floor: " + nhPriceFloor);
             targetPrice = Math.max(targetPrice, nhPriceFloor);
 
-            Api.updateOrder(orderId, targetPrice, Conversions.getDisplayMarketFactor(hashUnit), Conversions.getMarketFactor(hashUnit));
+            double submitLimit = limit;
+            if (targetPrice >= priceCeiling) {
+                submitLimit = Api.getMinLimit(algoName);
+            }
+
+            Api.updateOrder(orderId, targetPrice, Conversions.getDisplayMarketFactor(hashUnit), Conversions.getMarketFactor(hashUnit), submitLimit);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    private int getPriceCeiling(String coinName, char hashPrefix) throws IOException, JSONException {
+    public int getPriceCeiling(String coinName, char hashPrefix) throws IOException, JSONException {
         WhatToMineCoin coin = Coins.getCoin(coinName);
-        double unitProfit = coin.getProfitability();
+        // Choose smaller profitability from current and 24 hour exchange average
+        if (coin.getProfitability() < coin.getProfitability24()) {
+            System.out.println("Using current exchange rate");
+        } else {
+            System.out.println("Using 24 hour average exchange rate");
+        }
+        double unitProfit = Math.min(coin.getProfitability(), coin.getProfitability24());
         double btcProfit = Conversions.unitProfitToDailyBTC(unitProfit, hashPrefix);
         double priceCeiling = btcProfit / minProfitMargin;
 
         return Conversions.stringPriceToIntPrice(Double.toString(priceCeiling));
     }
 
-    private int getNHPriceFloor(String id, String algoName, String market) throws JSONException {
+    public int getNHPriceFloor(String id, String algoName, String market) throws JSONException {
         NicehashOrder order = Api.getOrder(id, algoName, market);
         int downStep = Api.getDownStep(algoName);
 

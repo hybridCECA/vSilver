@@ -1,5 +1,7 @@
 package nicehash;
 
+import dataclasses.NicehashAlgorithm;
+import dataclasses.NicehashOrder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,10 +18,8 @@ public class Api {
 
     public static void main(String[] args) throws IOException, JSONException {
         loadConfig();
-        List<NicehashOrder> orderbook = getOrderbook("SHA256", "EU");
-        for (NicehashOrder nicehashOrder : orderbook) {
-            System.out.println(nicehashOrder);
-        }
+        System.out.println(getMinLimit("cryptonightr"));
+        System.out.println(getMinLimit("lyra2z"));
     }
 
     public static void loadConfig() throws IOException, JSONException {
@@ -32,12 +32,16 @@ public class Api {
         api = new HttpApi("https://api2.nicehash.com/", orgId, apiKey, apiSecret);
     }
 
-    public static void updateOrder(String id, int price, String displayMarketFactor, double marketFactor) throws JSONException {
+    public static void updateOrder(String id, int price, String displayMarketFactor, double marketFactor, double limit) throws JSONException {
         String priceString = Conversions.intPriceToStringPrice(price);
         System.out.println("Submit price: " + priceString);
 
+        String limitString = Conversions.doublePriceToStringPrice(limit);
+        System.out.println("Submit limit: " + limit);
+
         JSONObject body = new JSONObject();
         body.put("price", priceString);
+        body.put("limit", limitString);
         body.put("displayMarketFactor", displayMarketFactor);
         body.put("marketFactor", marketFactor);
 
@@ -121,6 +125,25 @@ public class Api {
             if (name.toLowerCase().equals(algoName)) {
                 String downStepString = algo.getString("down_step");
                 return Conversions.stringPriceToIntPrice(downStepString);
+            }
+        }
+
+        throw new RuntimeException("Algo " + algoName + " not found!");
+    }
+
+    public static double getMinLimit(String algoName) throws JSONException {
+        algoName = algoName.toLowerCase();
+
+        String response = api.get("main/api/v2/public/buy/info");
+        JSONObject json = new JSONObject(response);
+        JSONArray algos = json.getJSONArray("miningAlgorithms");
+
+        for (int i = 0; i < algos.length(); i++) {
+            JSONObject algo = algos.getJSONObject(i);
+            String name = algo.getString("name");
+
+            if (name.toLowerCase().equals(algoName)) {
+                return algo.getDouble("min_limit");
             }
         }
 

@@ -1,7 +1,7 @@
 package utils;
 
-import nicehash.NicehashAlgorithm;
-import whattomine.WhatToMineCoin;
+import dataclasses.NicehashAlgorithm;
+import dataclasses.WhatToMineCoin;
 
 import java.util.Map;
 

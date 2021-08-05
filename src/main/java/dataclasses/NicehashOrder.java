@@ -1,4 +1,4 @@
-package nicehash;
+package dataclasses;
 
 public class NicehashOrder implements Comparable<NicehashOrder> {
     private int price;

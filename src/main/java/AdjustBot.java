@@ -15,7 +15,7 @@ public class AdjustBot {
     // Check period in seconds
     private static final int CHECK_PERIOD = 30;
 
-    public static void main(String[] args) throws IOException, JSONException {
+    public static void start() throws IOException, JSONException {
         Api.loadConfig();
 
         List<JSONObject> orderConfigList = Config.getOrderConfigList();

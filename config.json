@@ -10,6 +10,7 @@
       "hash_unit": "m",
       "order_id": "228f50b7-9b91-4c2b-b10e-67991347c536",
       "fulfill_speed": 0.01,
+      "limit": 0.025,
       "market": "EU"
     }
   ]

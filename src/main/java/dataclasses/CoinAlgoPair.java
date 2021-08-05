@@ -1,9 +1,7 @@
-package utils;
+package dataclasses;
 
-import nicehash.NicehashAlgorithm;
 import org.json.JSONException;
 import org.json.JSONObject;
-import whattomine.WhatToMineCoin;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -40,6 +38,7 @@ public class CoinAlgoPair implements Comparable<CoinAlgoPair> {
             obj.put("coin", wtmCoin.getName());
             obj.put("algo", nhAlgo.getAlgorithm());
             obj.put("coinProfitability", wtmCoin.getProfitability());
+            obj.put("coinExchangeRate", wtmCoin.getExchangeRate());
             obj.put("algoProfitability", nhAlgo.getProfitability());
             obj.put("gains", gains);
             return obj.toString();

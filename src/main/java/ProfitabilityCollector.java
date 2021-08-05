@@ -1,10 +1,10 @@
 import nicehash.Api;
-import nicehash.NicehashAlgorithm;
+import dataclasses.NicehashAlgorithm;
 import org.json.JSONException;
 import utils.CoinAlgoMatcher;
-import utils.CoinAlgoPair;
+import dataclasses.CoinAlgoPair;
 import whattomine.Coins;
-import whattomine.WhatToMineCoin;
+import dataclasses.WhatToMineCoin;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 public class ProfitabilityCollector {
     private static final int EXPECTED_PAIRS = 65;
 
-    public static void main(String[] args) throws IOException, JSONException {
+    public static void start() throws IOException, JSONException {
         Api.loadConfig();
 
         ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
@@ -25,7 +25,7 @@ public class ProfitabilityCollector {
         Runnable print = () -> {
             try {
                 printlogs();
-            } catch (IOException | JSONException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         };
@@ -33,7 +33,7 @@ public class ProfitabilityCollector {
         service.scheduleAtFixedRate(print, 0, 1, TimeUnit.MINUTES);
     }
 
-    private static void printlogs() throws IOException, JSONException {
+    public static void printlogs() throws IOException, JSONException {
         List<NicehashAlgorithm> algoList = Api.getAlgoList();
         List<WhatToMineCoin> coinList = Coins.getCoinList();
 
@@ -58,7 +58,7 @@ public class ProfitabilityCollector {
 
         if (list.size() != EXPECTED_PAIRS) {
             System.err.println(list.size());
-            throw new RuntimeException("Wrong number of pairs! Check code");
+            throw new RuntimeException("Wrong number of pairs!");
         }
 
         list.sort(Collections.reverseOrder());

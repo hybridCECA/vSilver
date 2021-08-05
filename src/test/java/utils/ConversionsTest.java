@@ -43,4 +43,21 @@ class ConversionsTest {
             assertEquals(answer, intPrice);
         }
     }
+
+    @org.junit.jupiter.api.Test
+    void testDoublePriceToStringPrice() {
+        Map<Double, String> solutions = Map.of(
+                0.001, "0.001",
+                0.005, "0.005",
+                0.01, "0.01",
+                0.5, "0.5",
+                1.5, "1.5"
+        );
+
+        for (double input : solutions.keySet()) {
+            String answer = solutions.get(input);
+            String intPrice = Conversions.doublePriceToStringPrice(input);
+            assertEquals(answer, intPrice);
+        }
+    }
 }
