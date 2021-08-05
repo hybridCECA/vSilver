@@ -33,8 +33,8 @@ class OrderBotTest {
         );
 
         testOrderbook(orderbook, 21, 25, 25, ORDER_LIMIT);
-        testOrderbook(orderbook, 17, 17, 19, MIN_LIMIT);
-        testOrderbook(orderbook, 13, 17, 13, MIN_LIMIT);
+        testOrderbook(orderbook, 17, 17, 19, ORDER_LIMIT);
+        testOrderbook(orderbook, 13, 17, 13, ORDER_LIMIT);
         testOrderbook(orderbook, 9, 7, 7, MIN_LIMIT);
 
         orderbook = List.of(

@@ -43,7 +43,7 @@ public class OrderBot {
             targetPrice = Math.max(targetPrice, nhPriceFloor);
 
             double submitLimit = limit;
-            if (targetPrice >= priceCeiling) {
+            if (targetPrice > priceCeiling) {
                 submitLimit = Api.getMinLimit(algoName);
             }
 
