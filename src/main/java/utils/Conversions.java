@@ -5,11 +5,20 @@ import java.util.Map;
 
 public class Conversions {
     public static final double BTC_TO_SATOSHIS = 100E6;
-    public static final Map<Character, Double> marketFactorMap = Map.of('k', 1E3, 'm', 1E6, 'g', 1E9, 't', 1e12);
+    public static final Map<Character, Double> marketFactorMap = Map.of('k', 1E3, 'm', 1E6, 'g', 1E9, 't', 1e12, 'p', 1e15);
     public static final int STRING_PRICE_TO_INT_PRICE = 10000;
+
+    public static char speedTextToHashPrefix(String speedText) {
+        return speedText.toLowerCase().charAt(0);
+    }
 
     public static double unitProfitToDailyBTC(double unitProfitability, char hashPrefix) {
         return unitProfitability / BTC_TO_SATOSHIS * getMarketFactor(hashPrefix);
+    }
+
+    public static int unitProfitToStringPrice(double unitProfitability, char hashPrefix) {
+        double dailyBtc = unitProfitToDailyBTC(unitProfitability, hashPrefix);
+        return stringPriceToIntPrice(Double.toString(dailyBtc));
     }
 
     public static String getDisplayMarketFactor(char prefix) {

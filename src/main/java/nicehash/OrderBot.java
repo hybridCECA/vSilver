@@ -44,7 +44,7 @@ public class OrderBot {
 
             double submitLimit = limit;
             if (targetPrice > priceCeiling) {
-                submitLimit = Api.getMinLimit(algoName);
+                submitLimit = Api.getAlgoBuyInfo(algoName).getMinLimit();
             }
 
             Api.updateOrder(orderId, targetPrice, Conversions.getDisplayMarketFactor(hashUnit), Conversions.getMarketFactor(hashUnit), submitLimit);
@@ -71,7 +71,7 @@ public class OrderBot {
 
     public int getNHPriceFloor(String id, String algoName, String market) throws JSONException {
         NicehashOrder order = Api.getOrder(id, algoName, market);
-        int downStep = Api.getDownStep(algoName);
+        int downStep = Api.getAlgoBuyInfo(algoName).getDownStep();
 
         return order.getPrice() + downStep;
     }

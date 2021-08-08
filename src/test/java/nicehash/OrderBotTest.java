@@ -1,6 +1,8 @@
 package nicehash;
 
+import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -66,8 +68,7 @@ class OrderBotTest {
             // Mocking
             mockedApi.when(() -> Api.getOrderbook(ALGO, MARKET)).thenReturn(orderbook);
             mockedApi.when(() -> Api.updateOrder(ORDER_ID, expectedPrice, "KH", 1000, expectedLimit)).then(setCorrect);
-            mockedApi.when(() -> Api.getDownStep(ALGO)).thenReturn(-1);
-            mockedApi.when(() -> Api.getMinLimit(ALGO)).thenReturn(MIN_LIMIT);
+            mockedApi.when(() -> Api.getAlgoBuyInfo(ALGO)).thenReturn(new NicehashAlgorithmBuyInfo(ALGO, -1, MIN_LIMIT, 0.1, new JSONArray(), "KH"));
             mockedApi.when(() -> Api.getOrder(ORDER_ID, ALGO, MARKET)).thenCallRealMethod();
 
             try (MockedStatic<Coins> mockedCoin = mockStatic(Coins.class)) {

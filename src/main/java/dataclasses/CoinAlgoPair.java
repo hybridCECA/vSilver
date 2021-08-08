@@ -1,54 +1,19 @@
 package dataclasses;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-public class CoinAlgoPair implements Comparable<CoinAlgoPair> {
+public class CoinAlgoPair  {
     private WhatToMineCoin wtmCoin;
     private NicehashAlgorithm nhAlgo;
-    private double gains;
 
-    public CoinAlgoPair(WhatToMineCoin wtmCoin, NicehashAlgorithm nhAlgo, double gains) {
+    public CoinAlgoPair(WhatToMineCoin wtmCoin, NicehashAlgorithm nhAlgo) {
         this.wtmCoin = wtmCoin;
         this.nhAlgo = nhAlgo;
-        this.gains = gains;
     }
 
-    /*
-    @Override
-    public String toString() {
-        return "CoinAlgoPair{" +
-                "wtmCoin=" + wtmCoin +
-                ", nhAlgo=" + nhAlgo +
-                ", gains=" + gains +
-                '}';
+    public NicehashAlgorithm getNhAlgo() {
+        return nhAlgo;
     }
 
-     */
-
-    @Override
-    public String toString() {
-        String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("timestamp", timeStamp);
-            obj.put("coin", wtmCoin.getName());
-            obj.put("algo", nhAlgo.getAlgorithm());
-            obj.put("coinProfitability", wtmCoin.getProfitability());
-            obj.put("coinExchangeRate", wtmCoin.getExchangeRate());
-            obj.put("algoProfitability", nhAlgo.getProfitability());
-            obj.put("gains", gains);
-            return obj.toString();
-        } catch (JSONException e) {
-            return e.toString();
-        }
-    }
-
-    @Override
-    public int compareTo(CoinAlgoPair o) {
-        return Double.compare(this.gains, o.gains);
+    public WhatToMineCoin getWtmCoin() {
+        return wtmCoin;
     }
 }

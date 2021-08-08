@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Price {
-    public static void main(String[] args) throws IOException, JSONException {
+    public static void main(String[] args) throws JSONException {
         Api.loadConfig();
         System.out.println(getSweepPrice(0.01, "cryptonightr", "EU", "228f50b7-9b91-4c2b-b10e-67991347c536"));
         System.out.println(getSpeedAtPrice(Api.getOrderbook("cryptonightr", "EU"), 57, "228f50b7-9b91-4c2b-b10e-67991347c536"));
@@ -101,6 +101,42 @@ public class Price {
                 if (order.getPrice() < payingPrice) {
                     speed += order.getSpeed();
                 }
+            }
+        }
+
+        return speed;
+    }
+
+    // Overloads without current order id
+    public static int getSweepPrice(double fulfillSpeed, String algoName, String market) throws JSONException {
+        int step = 1;
+
+        List<NicehashOrder> orderbook = Api.getOrderbook(algoName, market);
+        int maxPrice = orderbook.get(0).getPrice() + step;
+
+        for (int price = 0; price <= maxPrice; price += step) {
+            List<NicehashOrder> orderbookCopy = new ArrayList<>();
+            for (NicehashOrder order : orderbook) {
+                orderbookCopy.add(new NicehashOrder(order));
+            }
+
+
+            double speed = getSpeedAtPrice(orderbookCopy, price);
+
+            if (speed >= fulfillSpeed) {
+                return price;
+            }
+        }
+
+        return maxPrice;
+    }
+
+    public static double getSpeedAtPrice(List<NicehashOrder> orderbook, int payingPrice) {
+        // Sum all speed less than current order
+        double speed = 0;
+        for (NicehashOrder order : orderbook) {
+            if (order.getPrice() < payingPrice) {
+                speed += order.getSpeed();
             }
         }
 

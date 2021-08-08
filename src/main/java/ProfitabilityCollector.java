@@ -14,10 +14,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@Deprecated
 public class ProfitabilityCollector {
     private static final int EXPECTED_PAIRS = 65;
 
-    public static void start() throws IOException, JSONException {
+    public static void start() {
         Api.loadConfig();
 
         ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
@@ -50,8 +51,7 @@ public class ProfitabilityCollector {
                     //usedAlgos[i] = true;
                     //usedCoins[j] = true;
 
-                    double gains = coin.getProfitability() / algo.getProfitability() * 100;
-                    list.add(new CoinAlgoPair(coin, algo, gains));
+                    list.add(new CoinAlgoPair(coin, algo));
                 }
             }
         }

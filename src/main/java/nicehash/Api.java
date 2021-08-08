@@ -1,6 +1,8 @@
 package nicehash;
 
+import database.Connection;
 import dataclasses.NicehashAlgorithm;
+import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,18 +18,10 @@ import java.util.List;
 public class Api {
     private static HttpApi api;
 
-    public static void main(String[] args) throws IOException, JSONException {
-        loadConfig();
-        System.out.println(getMinLimit("cryptonightr"));
-        System.out.println(getMinLimit("lyra2z"));
-    }
-
-    public static void loadConfig() throws IOException, JSONException {
-        JSONObject config = Config.getConfigObject();
-
-        String orgId =  config.getString("orgId");
-        String apiKey = config.getString("apiKey");
-        String apiSecret = config.getString("apiSecret");
+    public static void loadConfig() {
+        String orgId =  Connection.getConfigValue("org_id");
+        String apiKey = Connection.getConfigValue("api_key");
+        String apiSecret = Connection.getConfigValue("api_secret");
 
         api = new HttpApi("https://api2.nicehash.com/", orgId, apiKey, apiSecret);
     }
@@ -111,42 +105,42 @@ public class Api {
         return Long.toString(Instant.now().toEpochMilli());
     }
 
-    public static int getDownStep(String algoName) throws JSONException {
-        algoName = algoName.toLowerCase();
-
+    public static List<NicehashAlgorithmBuyInfo> getBuyInfo() throws JSONException {
         String response = api.get("main/api/v2/public/buy/info");
         JSONObject json = new JSONObject(response);
         JSONArray algos = json.getJSONArray("miningAlgorithms");
 
+        List<NicehashAlgorithmBuyInfo> list = new ArrayList<>();
         for (int i = 0; i < algos.length(); i++) {
             JSONObject algo = algos.getJSONObject(i);
             String name = algo.getString("name");
+            int downStep = Conversions.stringPriceToIntPrice(algo.getString("down_step"));
+            double minLimit = algo.getDouble("min_limit");
+            double minAmount = algo.getDouble("min_amount");
+            JSONArray markets = algo.getJSONArray("enabledHashpowerMarkets");
+            String speedText = algo.getString("speed_text");
 
-            if (name.toLowerCase().equals(algoName)) {
-                String downStepString = algo.getString("down_step");
-                return Conversions.stringPriceToIntPrice(downStepString);
-            }
+            NicehashAlgorithmBuyInfo algoBuyInfo = new NicehashAlgorithmBuyInfo(name, downStep, minLimit, minAmount, markets, speedText);
+            list.add(algoBuyInfo);
         }
 
-        throw new RuntimeException("Algo " + algoName + " not found!");
+        return list;
     }
 
-    public static double getMinLimit(String algoName) throws JSONException {
+    public static NicehashAlgorithmBuyInfo getAlgoBuyInfo(String algoName) throws JSONException {
+        List<NicehashAlgorithmBuyInfo> buyInfo = getBuyInfo();
+        return getAlgoBuyInfo(buyInfo, algoName);
+    }
+
+    public static NicehashAlgorithmBuyInfo getAlgoBuyInfo(List<NicehashAlgorithmBuyInfo> buyInfo, String algoName) {
         algoName = algoName.toLowerCase();
 
-        String response = api.get("main/api/v2/public/buy/info");
-        JSONObject json = new JSONObject(response);
-        JSONArray algos = json.getJSONArray("miningAlgorithms");
-
-        for (int i = 0; i < algos.length(); i++) {
-            JSONObject algo = algos.getJSONObject(i);
-            String name = algo.getString("name");
-
-            if (name.toLowerCase().equals(algoName)) {
-                return algo.getDouble("min_limit");
+        for (NicehashAlgorithmBuyInfo info : buyInfo) {
+            if (info.getName().toLowerCase().equals(algoName)) {
+                return info;
             }
         }
 
-        throw new RuntimeException("Algo " + algoName + " not found!");
+        throw new RuntimeException("Algo not found");
     }
 }

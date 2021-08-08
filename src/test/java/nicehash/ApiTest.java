@@ -15,7 +15,7 @@ class ApiTest {
     private static final String MARKET = "EU";
 
     @Test
-    void testOrder() throws IOException, JSONException {
+    void testOrder() throws JSONException {
         Api.loadConfig();
         List<NicehashOrder> orderbook = Api.getOrderbook(ALGO_NAME, MARKET);
         assertTrue(orderbook.size() > 1);
@@ -32,16 +32,16 @@ class ApiTest {
     private static final double EXPECTED_MIN_LIMIT = 0.05;
 
     @Test
-    void testAlgos() throws JSONException, IOException {
+    void testAlgos() throws JSONException {
         Api.loadConfig();
 
         List<NicehashAlgorithm> algoList = Api.getAlgoList();
         assertTrue(algoList.size() > 1);
 
-        int downStep = Api.getDownStep(ALGO_NAME);
+        int downStep = Api.getAlgoBuyInfo(ALGO_NAME).getDownStep();
         assertEquals(downStep, EXPECTED_DOWNSTEP);
 
-        double minLimit = Api.getMinLimit(ALGO_NAME);
+        double minLimit = Api.getAlgoBuyInfo(ALGO_NAME).getMinLimit();
         assertEquals(minLimit, EXPECTED_MIN_LIMIT);
     }
 }
