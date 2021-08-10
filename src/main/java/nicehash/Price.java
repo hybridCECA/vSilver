@@ -109,37 +109,30 @@ public class Price {
 
     // Overloads without current order id
     public static int getSweepPrice(double fulfillSpeed, String algoName, String market) throws JSONException {
-        int step = 1;
-
         List<NicehashOrder> orderbook = Api.getOrderbook(algoName, market);
+
+        if (orderbook.size() == 0) {
+            return 1;
+        }
+
+        int step = 1;
         int maxPrice = orderbook.get(0).getPrice() + step;
 
-        for (int price = 0; price <= maxPrice; price += step) {
-            List<NicehashOrder> orderbookCopy = new ArrayList<>();
-            for (NicehashOrder order : orderbook) {
-                orderbookCopy.add(new NicehashOrder(order));
-            }
-
-
-            double speed = getSpeedAtPrice(orderbookCopy, price);
-
+        Collections.reverse(orderbook);
+        double speed = 0;
+        for (NicehashOrder order : orderbook) {
+            speed += order.getSpeed();
             if (speed >= fulfillSpeed) {
-                return price;
+                return order.getPrice() + step;
             }
         }
 
         return maxPrice;
     }
 
-    public static double getSpeedAtPrice(List<NicehashOrder> orderbook, int payingPrice) {
-        // Sum all speed less than current order
-        double speed = 0;
-        for (NicehashOrder order : orderbook) {
-            if (order.getPrice() < payingPrice) {
-                speed += order.getSpeed();
-            }
-        }
+    public static double getTotalSpeed(String algoName, String market) throws JSONException {
+        List<NicehashOrder> orderbook = Api.getOrderbook(algoName, market);
 
-        return speed;
+        return orderbook.stream().mapToDouble(NicehashOrder::getSpeed).sum();
     }
 }

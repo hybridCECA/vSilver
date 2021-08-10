@@ -1,6 +1,5 @@
 package nicehash;
 
-import database.Connection;
 import dataclasses.NicehashAlgorithm;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
@@ -13,15 +12,19 @@ import utils.Conversions;
 import java.io.*;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Api {
     private static HttpApi api;
+    private static final Map<String, JSONObject> orderbookCache = new HashMap<>();
+    private static List<NicehashAlgorithmBuyInfo> buyInfoCache;
 
     public static void loadConfig() {
-        String orgId =  Connection.getConfigValue("org_id");
-        String apiKey = Connection.getConfigValue("api_key");
-        String apiSecret = Connection.getConfigValue("api_secret");
+        String orgId =  Config.getConfigValue("org_id");
+        String apiKey = Config.getConfigValue("api_key");
+        String apiSecret = Config.getConfigValue("api_secret");
 
         api = new HttpApi("https://api2.nicehash.com/", orgId, apiKey, apiSecret);
     }
@@ -54,9 +57,20 @@ public class Api {
         throw new RuntimeException("Order not found");
     }
 
+    private static JSONObject getOrderbookJson(String algoName) throws JSONException {
+        if (orderbookCache.containsKey(algoName)) {
+            return orderbookCache.get(algoName);
+        } else {
+            String response = api.get("main/api/v2/hashpower/orderBook?algorithm=" + algoName.toUpperCase());
+            JSONObject json = new JSONObject(response);
+
+            orderbookCache.put(algoName, json);
+            return json;
+        }
+    }
+
     public static List<NicehashOrder> getOrderbook(String algoName, String market) throws JSONException {
-        String response = api.get("main/api/v2/hashpower/orderBook?algorithm=" + algoName.toUpperCase());
-        JSONObject json = new JSONObject(response);
+        JSONObject json = getOrderbookJson(algoName);
         JSONArray orders = json.getJSONObject("stats").getJSONObject(market).getJSONArray("orders");
 
         List<NicehashOrder> list = new ArrayList<>();
@@ -77,6 +91,10 @@ public class Api {
         }
 
         return list;
+    }
+
+    public static void invalidateOrderbookCache() {
+        orderbookCache.clear();
     }
 
     public static List<NicehashAlgorithm> getAlgoList() throws JSONException {
@@ -105,7 +123,11 @@ public class Api {
         return Long.toString(Instant.now().toEpochMilli());
     }
 
-    public static List<NicehashAlgorithmBuyInfo> getBuyInfo() throws JSONException {
+    private static List<NicehashAlgorithmBuyInfo> getBuyInfo() throws JSONException {
+        if (buyInfoCache != null) {
+            return buyInfoCache;
+        }
+
         String response = api.get("main/api/v2/public/buy/info");
         JSONObject json = new JSONObject(response);
         JSONArray algos = json.getJSONArray("miningAlgorithms");
@@ -124,15 +146,12 @@ public class Api {
             list.add(algoBuyInfo);
         }
 
+        buyInfoCache = list;
         return list;
     }
 
     public static NicehashAlgorithmBuyInfo getAlgoBuyInfo(String algoName) throws JSONException {
         List<NicehashAlgorithmBuyInfo> buyInfo = getBuyInfo();
-        return getAlgoBuyInfo(buyInfo, algoName);
-    }
-
-    public static NicehashAlgorithmBuyInfo getAlgoBuyInfo(List<NicehashAlgorithmBuyInfo> buyInfo, String algoName) {
         algoName = algoName.toLowerCase();
 
         for (NicehashAlgorithmBuyInfo info : buyInfo) {
@@ -142,5 +161,9 @@ public class Api {
         }
 
         throw new RuntimeException("Algo not found");
+    }
+
+    public static void invalidateBuyInfoCache() {
+        buyInfoCache = null;
     }
 }

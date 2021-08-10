@@ -4,15 +4,20 @@
 package test.generated;
 
 
+import org.jooq.ForeignKey;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 
+import test.generated.tables.AlgoData;
+import test.generated.tables.CoinData;
 import test.generated.tables.Config;
-import test.generated.tables.PairData;
+import test.generated.tables.MarketData;
+import test.generated.tables.records.AlgoDataRecord;
+import test.generated.tables.records.CoinDataRecord;
 import test.generated.tables.records.ConfigRecord;
-import test.generated.tables.records.PairDataRecord;
+import test.generated.tables.records.MarketDataRecord;
 
 
 /**
@@ -26,6 +31,15 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<AlgoDataRecord> ALGO_DATA_PKEY = Internal.createUniqueKey(AlgoData.ALGO_DATA, DSL.name("algo_data_pkey"), new TableField[] { AlgoData.ALGO_DATA.ID }, true);
+    public static final UniqueKey<CoinDataRecord> COIN_DATA_PKEY = Internal.createUniqueKey(CoinData.COIN_DATA, DSL.name("coin_data_pkey"), new TableField[] { CoinData.COIN_DATA.ID }, true);
     public static final UniqueKey<ConfigRecord> CONFIG_PKEY = Internal.createUniqueKey(Config.CONFIG, DSL.name("config_pkey"), new TableField[] { Config.CONFIG.ID }, true);
-    public static final UniqueKey<PairDataRecord> PAIR_DATA_PKEY = Internal.createUniqueKey(PairData.PAIR_DATA, DSL.name("pair_data_pkey"), new TableField[] { PairData.PAIR_DATA.ID }, true);
+    public static final UniqueKey<MarketDataRecord> MARKET_DATA_PKEY = Internal.createUniqueKey(MarketData.MARKET_DATA, DSL.name("market_data_pkey"), new TableField[] { MarketData.MARKET_DATA.ID }, true);
+
+    // -------------------------------------------------------------------------
+    // FOREIGN KEY definitions
+    // -------------------------------------------------------------------------
+
+    public static final ForeignKey<CoinDataRecord, AlgoDataRecord> COIN_DATA__FK_CONSTRAINT = Internal.createForeignKey(CoinData.COIN_DATA, DSL.name("fk_constraint"), new TableField[] { CoinData.COIN_DATA.ALGO_ID }, Keys.ALGO_DATA_PKEY, new TableField[] { AlgoData.ALGO_DATA.ID }, true);
+    public static final ForeignKey<MarketDataRecord, AlgoDataRecord> MARKET_DATA__FK_CONSTRAINT = Internal.createForeignKey(MarketData.MARKET_DATA, DSL.name("fk_constraint"), new TableField[] { MarketData.MARKET_DATA.ALGO_ID }, Keys.ALGO_DATA_PKEY, new TableField[] { AlgoData.ALGO_DATA.ID }, true);
 }

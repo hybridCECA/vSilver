@@ -16,7 +16,7 @@ public class Conversions {
         return unitProfitability / BTC_TO_SATOSHIS * getMarketFactor(hashPrefix);
     }
 
-    public static int unitProfitToStringPrice(double unitProfitability, char hashPrefix) {
+    public static int unitProfitToIntPrice(double unitProfitability, char hashPrefix) {
         double dailyBtc = unitProfitToDailyBTC(unitProfitability, hashPrefix);
         return stringPriceToIntPrice(Double.toString(dailyBtc));
     }

@@ -4,8 +4,10 @@
 package test.generated;
 
 
+import test.generated.tables.AlgoData;
+import test.generated.tables.CoinData;
 import test.generated.tables.Config;
-import test.generated.tables.PairData;
+import test.generated.tables.MarketData;
 
 
 /**
@@ -15,12 +17,22 @@ import test.generated.tables.PairData;
 public class Tables {
 
     /**
+     * The table <code>public.algo_data</code>.
+     */
+    public static final AlgoData ALGO_DATA = AlgoData.ALGO_DATA;
+
+    /**
+     * The table <code>public.coin_data</code>.
+     */
+    public static final CoinData COIN_DATA = CoinData.COIN_DATA;
+
+    /**
      * The table <code>public.config</code>.
      */
     public static final Config CONFIG = Config.CONFIG;
 
     /**
-     * The table <code>public.pair_data</code>.
+     * The table <code>public.market_data</code>.
      */
-    public static final PairData PAIR_DATA = PairData.PAIR_DATA;
+    public static final MarketData MARKET_DATA = MarketData.MARKET_DATA;
 }

@@ -1,23 +1,29 @@
 package datacollector;
 
 import database.Connection;
-import dataclasses.CoinAlgoPair;
-import dataclasses.NicehashAlgorithm;
-import dataclasses.NicehashAlgorithmBuyInfo;
-import dataclasses.WhatToMineCoin;
+import dataclasses.*;
 import nicehash.Api;
 import nicehash.Price;
 import org.json.JSONException;
+import org.json.JSONObject;
+import test.generated.tables.AlgoData;
+import test.generated.tables.records.AlgoDataRecord;
+import test.generated.tables.records.CoinDataRecord;
+import test.generated.tables.records.MarketDataRecord;
 import utils.CoinAlgoMatcher;
+import utils.Config;
 import utils.Conversions;
 import whattomine.Coins;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 
 public class DataCollector {
     public static void start() {
@@ -37,53 +43,66 @@ public class DataCollector {
     }
 
     private static void collect() throws IOException, JSONException {
-        List<CoinAlgoPair> pairs = getPairsList();
+        System.out.println("Start");
 
-        List<NicehashAlgorithmBuyInfo> buyInfo = Api.getBuyInfo();
-        for (CoinAlgoPair pair : pairs) {
-            NicehashAlgorithm algo = pair.getNhAlgo();
-            WhatToMineCoin coin = pair.getWtmCoin();
+        Api.invalidateOrderbookCache();
 
+        Map<AlgoDataRecord, AlgoAssociatedData> map = new HashMap<>();
+
+        List<NicehashAlgorithm> algoList = Api.getAlgoList();
+        List<WhatToMineCoin> coinList = Coins.getCoinList();
+        for (NicehashAlgorithm algo : algoList) {
             String algoName = algo.getAlgorithm();
-            NicehashAlgorithmBuyInfo algoBuyInfo = Api.getAlgoBuyInfo(buyInfo, algoName);
+
+            AlgoDataRecord algoRecord = new AlgoDataRecord();
+            algoRecord.setAlgoName(algoName);
+
+            // Get associated coins
+            List<CoinDataRecord> coinRecordList = new ArrayList<>();
+            for (WhatToMineCoin coin : coinList) {
+                if (CoinAlgoMatcher.match(algo, coin)) {
+                    CoinDataRecord coinRecord = new CoinDataRecord();
+                    coinRecord.setCoinName(coin.getName());
+                    coinRecord.setCoinRevenue(coin.getProfitability());
+                    coinRecord.setExchangeRate(coin.getExchangeRate());
+                    coinRecordList.add(coinRecord);
+                }
+            }
+
+            // Get associated markets
+            NicehashAlgorithmBuyInfo algoBuyInfo = Api.getAlgoBuyInfo(algoName);
             char hashPrefix = Conversions.speedTextToHashPrefix(algoBuyInfo.getSpeedText());
 
             // Calculate fulfill speed
             double estimatedPrice = Conversions.unitProfitToDailyBTC(algo.getProfitability(), hashPrefix);
             double minAmount = algoBuyInfo.getMinAmount();
-            String targetDaysString = Connection.getConfigValue("order_target_days");
+            String targetDaysString = Config.getConfigValue("order_target_days");
             double targetDays = Double.parseDouble(targetDaysString);
             double fulfillSpeed = minAmount / estimatedPrice / targetDays;
             fulfillSpeed = Math.max(fulfillSpeed, algoBuyInfo.getMinLimit());
 
-            // Get price for each market and record
+            List<MarketDataRecord> marketRecordList = new ArrayList<>();
             for (String market : algoBuyInfo.getMarkets()) {
+                double totalSpeed = Price.getTotalSpeed(algoName, market);
                 int algoPrice = Price.getSweepPrice(fulfillSpeed, algoName, market);
-                Connection.putPair(algoPrice, algo.getAlgorithm(), coin.getName(), Conversions.unitProfitToStringPrice(coin.getProfitability(), hashPrefix), coin.getExchangeRate(), market);
+
+                // Market record
+                MarketDataRecord marketRecord = new MarketDataRecord();
+                marketRecord.setFulfillPrice(algoPrice);
+                marketRecord.setFulfillSpeed(fulfillSpeed);
+                marketRecord.setMarketName(market);
+                marketRecord.setTotalSpeed(totalSpeed);
+                marketRecordList.add(marketRecord);
             }
-        }
-    }
 
-    public static final int EXPECTED_PAIRS = 65;
-    public static List<CoinAlgoPair> getPairsList() throws JSONException, IOException {
-        List<NicehashAlgorithm> algoList = Api.getAlgoList();
-        List<WhatToMineCoin> coinList = Coins.getCoinList();
+            AlgoAssociatedData associatedData = new AlgoAssociatedData();
+            associatedData.coinDataRecords = coinRecordList;
+            associatedData.marketDataRecords = marketRecordList;
 
-        List<CoinAlgoPair> list = new ArrayList<>();
-
-        for (NicehashAlgorithm algo : algoList) {
-            for (WhatToMineCoin coin : coinList) {
-                if (CoinAlgoMatcher.match(algo, coin)) {
-                    list.add(new CoinAlgoPair(coin, algo));
-                }
-            }
+            map.put(algoRecord, associatedData);
         }
 
-        if (list.size() != EXPECTED_PAIRS) {
-            System.err.println(list.size());
-            throw new RuntimeException("Wrong number of pairs!");
-        }
-
-        return list;
+        Connection.insertMap(map);
+        System.out.println("Done");
     }
 }

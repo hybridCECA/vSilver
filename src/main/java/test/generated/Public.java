@@ -11,8 +11,10 @@ import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
 
+import test.generated.tables.AlgoData;
+import test.generated.tables.CoinData;
 import test.generated.tables.Config;
-import test.generated.tables.PairData;
+import test.generated.tables.MarketData;
 
 
 /**
@@ -29,14 +31,24 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
+     * The table <code>public.algo_data</code>.
+     */
+    public final AlgoData ALGO_DATA = AlgoData.ALGO_DATA;
+
+    /**
+     * The table <code>public.coin_data</code>.
+     */
+    public final CoinData COIN_DATA = CoinData.COIN_DATA;
+
+    /**
      * The table <code>public.config</code>.
      */
     public final Config CONFIG = Config.CONFIG;
 
     /**
-     * The table <code>public.pair_data</code>.
+     * The table <code>public.market_data</code>.
      */
-    public final PairData PAIR_DATA = PairData.PAIR_DATA;
+    public final MarketData MARKET_DATA = MarketData.MARKET_DATA;
 
     /**
      * No further instances allowed
@@ -54,8 +66,10 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            AlgoData.ALGO_DATA,
+            CoinData.COIN_DATA,
             Config.CONFIG,
-            PairData.PAIR_DATA
+            MarketData.MARKET_DATA
         );
     }
 }
