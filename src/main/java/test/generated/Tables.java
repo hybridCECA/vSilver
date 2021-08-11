@@ -8,6 +8,7 @@ import test.generated.tables.AlgoData;
 import test.generated.tables.CoinData;
 import test.generated.tables.Config;
 import test.generated.tables.MarketData;
+import test.generated.tables.OrderLimits;
 
 
 /**
@@ -35,4 +36,9 @@ public class Tables {
      * The table <code>public.market_data</code>.
      */
     public static final MarketData MARKET_DATA = MarketData.MARKET_DATA;
+
+    /**
+     * The table <code>public.order_limits</code>.
+     */
+    public static final OrderLimits ORDER_LIMITS = OrderLimits.ORDER_LIMITS;
 }

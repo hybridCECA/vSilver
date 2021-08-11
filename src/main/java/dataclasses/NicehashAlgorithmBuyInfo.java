@@ -13,13 +13,15 @@ public class NicehashAlgorithmBuyInfo {
     private double minAmount;
     private List<String> markets;
     private String speedText;
+    private int minPrice;
 
-    public NicehashAlgorithmBuyInfo(String name, int downStep, double minLimit, double minAmount, JSONArray markets, String speedText) throws JSONException {
+    public NicehashAlgorithmBuyInfo(String name, int downStep, double minLimit, double minAmount, JSONArray markets, String speedText, int minPrice) throws JSONException {
         this.name = name;
         this.downStep = downStep;
         this.minLimit = minLimit;
         this.minAmount = minAmount;
         this.speedText = speedText;
+        this.minPrice = minPrice;
 
         this.markets = new ArrayList<>();
         for (int i = 0; i < markets.length(); i++) {
@@ -50,5 +52,9 @@ public class NicehashAlgorithmBuyInfo {
 
     public String getSpeedText() {
         return speedText;
+    }
+
+    public int getMinPrice() {
+        return minPrice;
     }
 }

@@ -1,14 +1,16 @@
 package whattomine;
 
 import dataclasses.WhatToMineCoin;
-import utils.Conversions;
 import org.json.JSONException;
 import org.json.JSONObject;
+import utils.Conversions;
 
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class Coins {
     private static List<WhatToMineCoin> coinList;
@@ -71,7 +73,6 @@ public class Coins {
             wtmCoin.setName(coinName);
             wtmCoin.setAlgorithm(coinObj.getString("algorithm"));
             wtmCoin.setProfitability(getCoinProfitability(coinObj));
-            wtmCoin.setProfitability24(getCoinProfitability24(coinObj));
             wtmCoin.setExchangeRate(coinObj.getDouble("exchange_rate"));
 
             coinList.add(wtmCoin);

@@ -1,12 +1,14 @@
-package datacollector;
+package services;
 
 import database.Connection;
-import dataclasses.*;
+import dataclasses.AlgoAssociatedData;
+import dataclasses.NicehashAlgorithm;
+import dataclasses.NicehashAlgorithmBuyInfo;
+import dataclasses.WhatToMineCoin;
 import nicehash.Api;
+import nicehash.MaxProfit;
 import nicehash.Price;
 import org.json.JSONException;
-import org.json.JSONObject;
-import test.generated.tables.AlgoData;
 import test.generated.tables.records.AlgoDataRecord;
 import test.generated.tables.records.CoinDataRecord;
 import test.generated.tables.records.MarketDataRecord;
@@ -23,27 +25,31 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 
 public class DataCollector {
     public static void start() {
-        Api.loadConfig();
-
         ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 
         Runnable print = () -> {
             try {
+                System.out.println("DataCollector start");
                 collect();
+                System.out.println("MaxProfit start");
+                MaxProfit.updateMaxProfits();
+                System.out.println("MaxProfit done");
+                System.out.println("DataCollector done");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         };
 
-        service.scheduleAtFixedRate(print, 0, 1, TimeUnit.MINUTES);
+        String periodString = Config.getConfigValue("data_collector_period_seconds");
+        int period = Integer.parseInt(periodString);
+
+        service.scheduleAtFixedRate(print, 0, period, TimeUnit.SECONDS);
     }
 
     private static void collect() throws IOException, JSONException {
-        System.out.println("Start");
 
         Api.invalidateOrderbookCache();
 
@@ -103,6 +109,5 @@ public class DataCollector {
         }
 
         Connection.insertMap(map);
-        System.out.println("Done");
     }
 }

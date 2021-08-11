@@ -14,10 +14,12 @@ import test.generated.tables.AlgoData;
 import test.generated.tables.CoinData;
 import test.generated.tables.Config;
 import test.generated.tables.MarketData;
+import test.generated.tables.OrderLimits;
 import test.generated.tables.records.AlgoDataRecord;
 import test.generated.tables.records.CoinDataRecord;
 import test.generated.tables.records.ConfigRecord;
 import test.generated.tables.records.MarketDataRecord;
+import test.generated.tables.records.OrderLimitsRecord;
 
 
 /**
@@ -35,6 +37,7 @@ public class Keys {
     public static final UniqueKey<CoinDataRecord> COIN_DATA_PKEY = Internal.createUniqueKey(CoinData.COIN_DATA, DSL.name("coin_data_pkey"), new TableField[] { CoinData.COIN_DATA.ID }, true);
     public static final UniqueKey<ConfigRecord> CONFIG_PKEY = Internal.createUniqueKey(Config.CONFIG, DSL.name("config_pkey"), new TableField[] { Config.CONFIG.ID }, true);
     public static final UniqueKey<MarketDataRecord> MARKET_DATA_PKEY = Internal.createUniqueKey(MarketData.MARKET_DATA, DSL.name("market_data_pkey"), new TableField[] { MarketData.MARKET_DATA.ID }, true);
+    public static final UniqueKey<OrderLimitsRecord> ORDER_LIMITS_PKEY = Internal.createUniqueKey(OrderLimits.ORDER_LIMITS, DSL.name("order_limits_pkey"), new TableField[] { OrderLimits.ORDER_LIMITS.ID }, true);
 
     // -------------------------------------------------------------------------
     // FOREIGN KEY definitions

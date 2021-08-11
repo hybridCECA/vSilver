@@ -4,18 +4,15 @@ import dataclasses.AlgoAssociatedData;
 import dataclasses.PriceRecord;
 import org.jooq.*;
 import org.jooq.impl.DSL;
-import org.jooq.types.DayToSecond;
-import org.jooq.types.Interval;
-import org.jooq.types.YearToSecond;
-import test.generated.tables.records.AlgoDataRecord;
-import test.generated.tables.records.CoinDataRecord;
-import test.generated.tables.records.ConfigRecord;
-import test.generated.tables.records.MarketDataRecord;
+import test.generated.tables.records.*;
 import utils.Config;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static test.generated.Tables.*;
 
@@ -92,8 +89,8 @@ public class Connection {
                     ALGO_DATA
                     .join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
                 )
-                .where(ALGO_DATA.TIMESTAMP.ge(DSL.currentLocalDateTime().minus((new DayToSecond(0, 0, 300)))))
-                .and(ALGO_DATA.ALGO_NAME.eq(algoName))
+                //.where(ALGO_DATA.TIMESTAMP.ge(DSL.currentLocalDateTime().minus((new DayToSecond(0, 0, 300)))))
+                .where(ALGO_DATA.ALGO_NAME.eq(algoName))
                 .and(MARKET_DATA.MARKET_NAME.eq(marketName))
                 .groupBy(MARKET_DATA.FULFILL_PRICE)
                 .orderBy(MARKET_DATA.FULFILL_PRICE.asc())
@@ -106,6 +103,51 @@ public class Connection {
             }
 
             return list;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new RuntimeException("SQL Error");
+    }
+
+    public static void putOrderLimit(String orderId, double orderLimit) {
+        try (java.sql.Connection conn = getConnection()) {
+            DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
+
+            OrderLimitsRecord record = create.newRecord(ORDER_LIMITS);
+            record.setOrderId(orderId);
+            record.setOrderLimit(orderLimit);
+            record.store();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void deleteOrderLimit(String orderId) {
+        try (java.sql.Connection conn = getConnection()) {
+            DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
+
+            OrderLimitsRecord record = create.fetchOne(ORDER_LIMITS, ORDER_LIMITS.ORDER_ID.eq(orderId));
+            if (record != null) {
+                record.delete();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Map<String, Double> getOrderLimits() {
+        try (java.sql.Connection conn = getConnection()) {
+            DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
+
+            Result<OrderLimitsRecord> result = create.fetch(ORDER_LIMITS);
+
+            Map<String, Double> map = new HashMap<>();
+            for (OrderLimitsRecord record : result) {
+                map.put(record.getOrderId(), record.getOrderLimit());
+            }
+
+            return map;
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -1,10 +1,12 @@
-import nicehash.Api;
+package services;
+
+import dataclasses.CoinAlgoPair;
 import dataclasses.NicehashAlgorithm;
+import dataclasses.WhatToMineCoin;
+import nicehash.Api;
 import org.json.JSONException;
 import utils.CoinAlgoMatcher;
-import dataclasses.CoinAlgoPair;
 import whattomine.Coins;
-import dataclasses.WhatToMineCoin;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -1,78 +1,112 @@
 package nicehash;
+
+import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
+import dataclasses.TriplePair;
+import dataclasses.WhatToMineCoin;
 import org.json.JSONException;
-import org.json.JSONObject;
 import utils.Conversions;
 import whattomine.Coins;
-import dataclasses.WhatToMineCoin;
 
 import java.io.IOException;
+import java.util.Objects;
 
-public class OrderBot {
-    private double minProfitMargin;
-    private double fulfillSpeed;
+public class OrderBot implements Comparable<OrderBot> {
+    private String orderId;
     private double limit;
     private String coinName;
     private String algoName;
-    private char hashUnit;
-    private String orderId;
-    private String market;
+    private String marketName;
 
-    public OrderBot(JSONObject config) throws JSONException {
-        minProfitMargin = config.getDouble("min_profit_margin");
-        coinName = config.getString("coin_name");
-        algoName = config.getString("algo_name");
-        hashUnit = config.getString("hash_unit").charAt(0);
-        orderId = config.getString("order_id");
-        market = config.getString("market");
-        fulfillSpeed = config.getDouble("fulfill_speed");
-        limit = config.getDouble("limit");
+    public OrderBot(String orderId, double limit, String coinName, String algoName, String marketName) {
+        this.orderId = orderId;
+        this.limit = limit;
+        this.coinName = coinName;
+        this.algoName = algoName;
+        this.marketName = marketName;
     }
 
     public void run() {
         try {
-            int targetPrice = Price.getSweepPrice(fulfillSpeed, algoName, market, orderId);
-            System.out.println("Target price: " + targetPrice);
+            int price = Price.getSweepPrice(limit, algoName, marketName, orderId);
+            System.out.println("Target price: " + price);
 
-            int priceCeiling = getPriceCeiling(coinName, hashUnit);
-            System.out.println("Price ceiling: " + priceCeiling);
-            targetPrice = Math.min(targetPrice, priceCeiling);
+            NicehashAlgorithmBuyInfo algoBuyInfo = Api.getAlgoBuyInfo(algoName);
+            char hashPrefix = Conversions.speedTextToHashPrefix(algoBuyInfo.getSpeedText());
 
-            int nhPriceFloor = getNHPriceFloor(orderId, algoName, market);
-            System.out.println("Price floor: " + nhPriceFloor);
-            targetPrice = Math.max(targetPrice, nhPriceFloor);
+            int profitabilityBound = getProfitabilityBound(coinName, hashPrefix);
+            System.out.println("Profitability bound: " + profitabilityBound);
+            price = Math.min(price, profitabilityBound);
+
+            TriplePair pair = getTriplePair();
+            if (!MaxProfit.hasMaxProfit(pair)) {
+                System.out.println("No max profit yet, waiting...");
+                return;
+            }
+            int maxProfitabilityBound = MaxProfit.getMaxProfit(pair);
+            System.out.println("Max profitability bound: " + profitabilityBound);
+            price = Math.min(price, maxProfitabilityBound);
+
+            int decraseBound = getPriceDecreaseBound(orderId, algoName, marketName);
+            System.out.println("Decrease bound: " + decraseBound);
+            price = Math.max(price, decraseBound);
 
             double submitLimit = limit;
-            if (targetPrice > priceCeiling) {
+            if (price > profitabilityBound) {
                 submitLimit = Api.getAlgoBuyInfo(algoName).getMinLimit();
             }
 
-            Api.updateOrder(orderId, targetPrice, Conversions.getDisplayMarketFactor(hashUnit), Conversions.getMarketFactor(hashUnit), submitLimit);
+            Api.updateOrder(orderId, price, Conversions.getDisplayMarketFactor(hashPrefix), Conversions.getMarketFactor(hashPrefix), submitLimit);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    public int getPriceCeiling(String coinName, char hashPrefix) throws IOException, JSONException {
-        WhatToMineCoin coin = Coins.getCoin(coinName);
-        // Choose smaller profitability from current and 24 hour exchange average
-        if (coin.getProfitability() < coin.getProfitability24()) {
-            System.out.println("Using current exchange rate");
-        } else {
-            System.out.println("Using 24 hour average exchange rate");
-        }
-        double unitProfit = Math.min(coin.getProfitability(), coin.getProfitability24());
-        double btcProfit = Conversions.unitProfitToDailyBTC(unitProfit, hashPrefix);
-        double priceCeiling = btcProfit / minProfitMargin;
-
-        return Conversions.stringPriceToIntPrice(Double.toString(priceCeiling));
+    public TriplePair getTriplePair() {
+        return new TriplePair(algoName, marketName, coinName);
     }
 
-    public int getNHPriceFloor(String id, String algoName, String market) throws JSONException {
+    public int getProfitabilityBound(String coinName, char hashPrefix) throws IOException, JSONException {
+        WhatToMineCoin coin = Coins.getCoin(coinName);
+        double unitProfit = coin.getProfitability();
+        return Conversions.unitProfitToIntPrice(unitProfit, hashPrefix);
+    }
+
+    public int getPriceDecreaseBound(String id, String algoName, String market) throws JSONException {
         NicehashOrder order = Api.getOrder(id, algoName, market);
         int downStep = Api.getAlgoBuyInfo(algoName).getDownStep();
 
         return order.getPrice() + downStep;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public double getLimit() {
+        return limit;
+    }
+
+    public void setLimit(double limit) {
+        this.limit = limit;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof OrderBot)) return false;
+        OrderBot orderBot = (OrderBot) o;
+        return orderId.equals(orderBot.orderId);
+    }
+
+    @Override
+    public int compareTo(OrderBot o) {
+        return this.orderId.compareTo(o.orderId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(orderId);
     }
 }

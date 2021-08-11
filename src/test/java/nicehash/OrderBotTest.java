@@ -2,6 +2,7 @@ package nicehash;
 
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
+import dataclasses.WhatToMineCoin;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -9,13 +10,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.stubbing.Answer;
 import whattomine.Coins;
-import dataclasses.WhatToMineCoin;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mockStatic;
-import static org.junit.jupiter.api.Assertions.*;
 
 class OrderBotTest {
     private static final String ALGO = "test_algo";
@@ -68,7 +68,7 @@ class OrderBotTest {
             // Mocking
             mockedApi.when(() -> Api.getOrderbook(ALGO, MARKET)).thenReturn(orderbook);
             mockedApi.when(() -> Api.updateOrder(ORDER_ID, expectedPrice, "KH", 1000, expectedLimit)).then(setCorrect);
-            mockedApi.when(() -> Api.getAlgoBuyInfo(ALGO)).thenReturn(new NicehashAlgorithmBuyInfo(ALGO, -1, MIN_LIMIT, 0.1, new JSONArray(), "KH"));
+            mockedApi.when(() -> Api.getAlgoBuyInfo(ALGO)).thenReturn(new NicehashAlgorithmBuyInfo(ALGO, -1, MIN_LIMIT, 0.1, new JSONArray(), "KH", 1));
             mockedApi.when(() -> Api.getOrder(ORDER_ID, ALGO, MARKET)).thenCallRealMethod();
 
             try (MockedStatic<Coins> mockedCoin = mockStatic(Coins.class)) {
@@ -77,7 +77,6 @@ class OrderBotTest {
                 coin.setAlgorithm(ALGO);
                 double unitProfitabilityFactor = 1.0 / 10000.0 * 100E6 / 1E3;
                 coin.setProfitability(profitability * unitProfitabilityFactor);
-                coin.setProfitability24(profitability24 * unitProfitabilityFactor);
 
                 mockedCoin.when(() -> Coins.getCoin(COIN)).thenReturn(coin);
 
@@ -91,7 +90,7 @@ class OrderBotTest {
                 config.put("fulfill_speed", ORDER_LIMIT);
                 config.put("limit", ORDER_LIMIT);
 
-                new OrderBot(config).run();
+                new OrderBot(ORDER_ID, ORDER_LIMIT, COIN, ALGO, MARKET).run();
 
                 assertTrue(correctPrice.get());
             }

@@ -1,5 +1,6 @@
 package nicehash;
 
+import com.sun.source.util.Trees;
 import dataclasses.NicehashAlgorithm;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
@@ -9,12 +10,8 @@ import org.json.JSONObject;
 import utils.Config;
 import utils.Conversions;
 
-import java.io.*;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Api {
     private static HttpApi api;
@@ -97,6 +94,29 @@ public class Api {
         orderbookCache.clear();
     }
 
+    public static Set<OrderBot> getActiveOrders() throws JSONException {
+        String response = api.get("main/api/v2/hashpower/myOrders?active=true&ts=0&op=GT&limit=1000", true, getTime());
+        JSONObject json = new JSONObject(response);
+        JSONArray orders = json.getJSONArray("list");
+
+        Set<OrderBot> set = new HashSet<>();
+        for (int i = 0; i < orders.length(); i++) {
+            JSONObject order = orders.getJSONObject(i);
+
+            String orderId = order.getString("id");
+            double limit = order.getDouble("limit");
+            String[] poolWords = order.getJSONObject("pool").getString("name").split(" ");
+            String coinName = poolWords[0];
+            String algoName = order.getJSONObject("algorithm").getString("algorithm");
+            String marketName = order.getString("market");
+
+            OrderBot bot = new OrderBot(orderId, limit, coinName, algoName, marketName);
+            set.add(bot);
+        }
+
+        return set;
+    }
+
     public static List<NicehashAlgorithm> getAlgoList() throws JSONException {
         List<NicehashAlgorithm> algoList = new ArrayList<>();
 
@@ -141,8 +161,9 @@ public class Api {
             double minAmount = algo.getDouble("min_amount");
             JSONArray markets = algo.getJSONArray("enabledHashpowerMarkets");
             String speedText = algo.getString("speed_text");
+            int minPrice = Conversions.stringPriceToIntPrice(algo.getString("min_price"));
 
-            NicehashAlgorithmBuyInfo algoBuyInfo = new NicehashAlgorithmBuyInfo(name, downStep, minLimit, minAmount, markets, speedText);
+            NicehashAlgorithmBuyInfo algoBuyInfo = new NicehashAlgorithmBuyInfo(name, downStep, minLimit, minAmount, markets, speedText, minPrice);
             list.add(algoBuyInfo);
         }
 

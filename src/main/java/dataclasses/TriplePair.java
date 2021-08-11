@@ -2,7 +2,7 @@ package dataclasses;
 
 import java.util.Objects;
 
-public class TriplePair {
+public class TriplePair implements Comparable<TriplePair> {
     private String algo;
     private String market;
     private String coin;
@@ -38,5 +38,10 @@ public class TriplePair {
     @Override
     public int hashCode() {
         return Objects.hash(algo, market, coin);
+    }
+
+    @Override
+    public int compareTo(TriplePair o) {
+        return this.coin.compareTo(o.coin);
     }
 }

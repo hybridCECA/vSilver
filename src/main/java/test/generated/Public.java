@@ -15,6 +15,7 @@ import test.generated.tables.AlgoData;
 import test.generated.tables.CoinData;
 import test.generated.tables.Config;
 import test.generated.tables.MarketData;
+import test.generated.tables.OrderLimits;
 
 
 /**
@@ -51,6 +52,11 @@ public class Public extends SchemaImpl {
     public final MarketData MARKET_DATA = MarketData.MARKET_DATA;
 
     /**
+     * The table <code>public.order_limits</code>.
+     */
+    public final OrderLimits ORDER_LIMITS = OrderLimits.ORDER_LIMITS;
+
+    /**
      * No further instances allowed
      */
     private Public() {
@@ -69,7 +75,8 @@ public class Public extends SchemaImpl {
             AlgoData.ALGO_DATA,
             CoinData.COIN_DATA,
             Config.CONFIG,
-            MarketData.MARKET_DATA
+            MarketData.MARKET_DATA,
+            OrderLimits.ORDER_LIMITS
         );
     }
 }

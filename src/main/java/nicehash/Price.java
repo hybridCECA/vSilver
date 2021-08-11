@@ -3,7 +3,6 @@ package nicehash;
 import dataclasses.NicehashOrder;
 import org.json.JSONException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

@@ -5,10 +5,10 @@ import dataclasses.NicehashOrder;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ApiTest {
     private static final String ALGO_NAME = "SHA256";
