@@ -5,11 +5,11 @@ import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.PriceRecord;
 import dataclasses.TriplePair;
 import org.json.JSONException;
+import utils.Config;
 import utils.Conversions;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MaxProfit {
@@ -19,7 +19,9 @@ public class MaxProfit {
     public static void updateMaxProfits() throws JSONException {
         for (TriplePair pair : maxProfitCache.keySet()) {
             // Get prices
-            List<PriceRecord> priceRecords = Connection.getPrices(pair.getAlgo(), pair.getMarket());
+            String analyzeMinutesString = Config.getConfigValue("max_profit_analyze_minutes");
+            int analyzeMinutes = Integer.parseInt(analyzeMinutesString);
+            List<PriceRecord> priceRecords = Connection.getPrices(pair.getAlgo(), pair.getMarket(), analyzeMinutes);
 
             // Get coin revenue
             NicehashAlgorithmBuyInfo buyInfo = Api.getAlgoBuyInfo(pair.getAlgo());

@@ -4,6 +4,7 @@ import dataclasses.AlgoAssociatedData;
 import dataclasses.PriceRecord;
 import org.jooq.*;
 import org.jooq.impl.DSL;
+import org.jooq.types.DayToSecond;
 import test.generated.tables.records.*;
 import utils.Config;
 
@@ -81,7 +82,7 @@ public class Connection {
         throw new RuntimeException("Coin not found");
     }
 
-    public static List<PriceRecord> getPrices(String algoName, String marketName) {
+    public static List<PriceRecord> getPrices(String algoName, String marketName, int analyzeMinutes) {
         try (java.sql.Connection conn = getConnection()) {
             DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
             Result<Record2<Integer, Integer>> result = create.select(MARKET_DATA.FULFILL_PRICE, DSL.count(MARKET_DATA.FULFILL_PRICE))
@@ -89,8 +90,8 @@ public class Connection {
                     ALGO_DATA
                     .join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
                 )
-                //.where(ALGO_DATA.TIMESTAMP.ge(DSL.currentLocalDateTime().minus((new DayToSecond(0, 0, 300)))))
-                .where(ALGO_DATA.ALGO_NAME.eq(algoName))
+                .where(ALGO_DATA.TIMESTAMP.ge(DSL.currentLocalDateTime().minus((new DayToSecond(0, 0, analyzeMinutes)))))
+                .and(ALGO_DATA.ALGO_NAME.eq(algoName))
                 .and(MARKET_DATA.MARKET_NAME.eq(marketName))
                 .groupBy(MARKET_DATA.FULFILL_PRICE)
                 .orderBy(MARKET_DATA.FULFILL_PRICE.asc())

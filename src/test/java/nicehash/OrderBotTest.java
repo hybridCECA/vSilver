@@ -2,6 +2,7 @@ package nicehash;
 
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
+import dataclasses.TriplePair;
 import dataclasses.WhatToMineCoin;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,10 +35,10 @@ class OrderBotTest {
                 new NicehashOrder(5, 0, "other_order_3", 2)
         );
 
-        testOrderbook(orderbook, 21, 25, 25, ORDER_LIMIT);
-        testOrderbook(orderbook, 17, 17, 19, ORDER_LIMIT);
-        testOrderbook(orderbook, 13, 17, 13, ORDER_LIMIT);
-        testOrderbook(orderbook, 9, 7, 7, MIN_LIMIT);
+        runTest(orderbook, 21, 25, 25, ORDER_LIMIT);
+        runTest(orderbook, 17, 17, 19, ORDER_LIMIT);
+        runTest(orderbook, 13, 17, 13, ORDER_LIMIT);
+        runTest(orderbook, 9, 7, 7, MIN_LIMIT);
 
         orderbook = List.of(
                 new NicehashOrder(20, 2, "other_order_1", 2),
@@ -45,7 +46,7 @@ class OrderBotTest {
                 new NicehashOrder(10, 0, ORDER_ID, ORDER_LIMIT),
                 new NicehashOrder(5, 0, "other_order_3", 2)
         );
-        testOrderbook(orderbook, 16, 25, 25, ORDER_LIMIT);
+        runTest(orderbook, 16, 25, 25, ORDER_LIMIT);
 
         orderbook = List.of(
                 new NicehashOrder(20, 2, "other_order_1", 2),
@@ -53,10 +54,10 @@ class OrderBotTest {
                 new NicehashOrder(10, 2, ORDER_ID, ORDER_LIMIT),
                 new NicehashOrder(5, 2, "other_order_3", 2)
         );
-        testOrderbook(orderbook, 9, 25, 25, ORDER_LIMIT);
+        runTest(orderbook, 9, 25, 25, ORDER_LIMIT);
     }
 
-    void testOrderbook(List<NicehashOrder> orderbook, int expectedPrice, int profitability, int profitability24, double expectedLimit) throws JSONException {
+    void runTest(List<NicehashOrder> orderbook, int expectedPrice, int profitability, int maxProfitBound, double expectedLimit) throws JSONException {
         // Mock scope
         try (MockedStatic<Api> mockedApi = mockStatic(Api.class)) {
             AtomicBoolean correctPrice = new AtomicBoolean(false);
@@ -72,27 +73,34 @@ class OrderBotTest {
             mockedApi.when(() -> Api.getOrder(ORDER_ID, ALGO, MARKET)).thenCallRealMethod();
 
             try (MockedStatic<Coins> mockedCoin = mockStatic(Coins.class)) {
-                WhatToMineCoin coin = new WhatToMineCoin();
-                coin.setName(COIN);
-                coin.setAlgorithm(ALGO);
-                double unitProfitabilityFactor = 1.0 / 10000.0 * 100E6 / 1E3;
-                coin.setProfitability(profitability * unitProfitabilityFactor);
 
-                mockedCoin.when(() -> Coins.getCoin(COIN)).thenReturn(coin);
+                try (MockedStatic<MaxProfit> mockedMaxProfit = mockStatic(MaxProfit.class)) {
+                    TriplePair pair = new TriplePair(ALGO, MARKET, COIN);
+                    mockedMaxProfit.when(() -> MaxProfit.getMaxProfit(pair)).thenReturn(maxProfitBound);
+                    mockedMaxProfit.when(() -> MaxProfit.hasMaxProfit(pair)).thenReturn(true);
 
-                JSONObject config = new JSONObject();
-                config.put("min_profit_margin", 1);
-                config.put("coin_name", COIN);
-                config.put("algo_name", ALGO);
-                config.put("hash_unit", "k");
-                config.put("order_id", ORDER_ID);
-                config.put("market", MARKET);
-                config.put("fulfill_speed", ORDER_LIMIT);
-                config.put("limit", ORDER_LIMIT);
+                    WhatToMineCoin coin = new WhatToMineCoin();
+                    coin.setName(COIN);
+                    coin.setAlgorithm(ALGO);
+                    double unitProfitabilityFactor = 1.0 / 10000.0 * 100E6 / 1E3;
+                    coin.setProfitability(profitability * unitProfitabilityFactor);
 
-                new OrderBot(ORDER_ID, ORDER_LIMIT, COIN, ALGO, MARKET).run();
+                    mockedCoin.when(() -> Coins.getCoin(COIN)).thenReturn(coin);
 
-                assertTrue(correctPrice.get());
+                    JSONObject config = new JSONObject();
+                    config.put("min_profit_margin", 1);
+                    config.put("coin_name", COIN);
+                    config.put("algo_name", ALGO);
+                    config.put("hash_unit", "k");
+                    config.put("order_id", ORDER_ID);
+                    config.put("market", MARKET);
+                    config.put("fulfill_speed", ORDER_LIMIT);
+                    config.put("limit", ORDER_LIMIT);
+
+                    new OrderBot(ORDER_ID, ORDER_LIMIT, COIN, ALGO, MARKET).run();
+
+                    assertTrue(correctPrice.get());
+                }
             }
         }
     }

@@ -28,6 +28,8 @@ public class OrderBot implements Comparable<OrderBot> {
 
     public void run() {
         try {
+            Api.invalidateOrderbookCache(algoName);
+
             int price = Price.getSweepPrice(limit, algoName, marketName, orderId);
             System.out.println("Target price: " + price);
 
@@ -44,7 +46,7 @@ public class OrderBot implements Comparable<OrderBot> {
                 return;
             }
             int maxProfitabilityBound = MaxProfit.getMaxProfit(pair);
-            System.out.println("Max profitability bound: " + profitabilityBound);
+            System.out.println("Max profitability bound: " + maxProfitabilityBound);
             price = Math.min(price, maxProfitabilityBound);
 
             int decraseBound = getPriceDecreaseBound(orderId, algoName, marketName);

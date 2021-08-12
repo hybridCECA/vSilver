@@ -3,7 +3,9 @@ package nicehash;
 import dataclasses.NicehashAlgorithm;
 import dataclasses.NicehashOrder;
 import org.json.JSONException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import utils.Config;
 
 import java.util.List;
 
@@ -13,6 +15,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ApiTest {
     private static final String ALGO_NAME = "SHA256";
     private static final String MARKET = "EU";
+
+    @BeforeAll
+    static void loadConfig() {
+        Config.setDatabaseConfig(System.getenv("database_username"), System.getenv("database_password"), System.getenv("database_url"));
+    }
 
     @Test
     void testOrder() throws JSONException {

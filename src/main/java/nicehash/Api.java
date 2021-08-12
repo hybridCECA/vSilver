@@ -90,6 +90,10 @@ public class Api {
         return list;
     }
 
+    public static void invalidateOrderbookCache(String algoName) {
+        orderbookCache.remove(algoName);
+    }
+
     public static void invalidateOrderbookCache() {
         orderbookCache.clear();
     }
