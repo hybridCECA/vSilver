@@ -64,10 +64,10 @@ public class Connection {
         }
     }
 
-    public static double getCoinRevenue(String coinName) {
+    public static int getCoinRevenue(String coinName) {
         try (java.sql.Connection conn = getConnection()) {
             DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
-            Record1<Double> result = create.select(COIN_DATA.COIN_REVENUE)
+            Record1<Integer> result = create.select(COIN_DATA.COIN_REVENUE)
                     .from(ALGO_DATA.join(COIN_DATA).on(ALGO_DATA.ID.eq(COIN_DATA.ALGO_ID)))
                     .where(COIN_DATA.COIN_NAME.eq(coinName))
                     .orderBy(ALGO_DATA.TIMESTAMP.desc())

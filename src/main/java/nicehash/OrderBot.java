@@ -5,6 +5,8 @@ import dataclasses.NicehashOrder;
 import dataclasses.TriplePair;
 import dataclasses.WhatToMineCoin;
 import org.json.JSONException;
+import utils.Config;
+import utils.Consts;
 import utils.Conversions;
 import whattomine.Coins;
 
@@ -36,7 +38,7 @@ public class OrderBot implements Comparable<OrderBot> {
             NicehashAlgorithmBuyInfo algoBuyInfo = Api.getAlgoBuyInfo(algoName);
             char hashPrefix = Conversions.speedTextToHashPrefix(algoBuyInfo.getSpeedText());
 
-            int profitabilityBound = getProfitabilityBound(coinName, hashPrefix);
+            int profitabilityBound = getProfitabilityBound(coinName);
             System.out.println("Profitability bound: " + profitabilityBound);
             price = Math.min(price, profitabilityBound);
 
@@ -55,7 +57,7 @@ public class OrderBot implements Comparable<OrderBot> {
 
             double submitLimit = limit;
             if (price > profitabilityBound) {
-                submitLimit = Api.getAlgoBuyInfo(algoName).getMinLimit();
+                submitLimit = algoBuyInfo.getMinLimit();
             }
 
             Api.updateOrder(orderId, price, Conversions.getDisplayMarketFactor(hashPrefix), Conversions.getMarketFactor(hashPrefix), submitLimit);
@@ -69,10 +71,13 @@ public class OrderBot implements Comparable<OrderBot> {
         return new TriplePair(algoName, marketName, coinName);
     }
 
-    public int getProfitabilityBound(String coinName, char hashPrefix) throws IOException, JSONException {
+    public int getProfitabilityBound(String coinName) throws IOException, JSONException {
         WhatToMineCoin coin = Coins.getCoin(coinName);
-        double unitProfit = coin.getProfitability();
-        return Conversions.unitProfitToIntPrice(unitProfit, hashPrefix);
+        double minProfitMargin = Config.getConfigDouble(Consts.ORDER_BOT_MIN_PROFIT_MARGIN);
+
+        double profitabilityBound = coin.getIntProfitability() / minProfitMargin;
+
+        return Math.toIntExact(Math.round(profitabilityBound));
     }
 
     public int getPriceDecreaseBound(String id, String algoName, String market) throws JSONException {

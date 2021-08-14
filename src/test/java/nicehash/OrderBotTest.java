@@ -83,7 +83,7 @@ class OrderBotTest {
                     coin.setName(COIN);
                     coin.setAlgorithm(ALGO);
                     double unitProfitabilityFactor = 1.0 / 10000.0 * 100E6 / 1E3;
-                    coin.setProfitability(profitability * unitProfitabilityFactor);
+                    coin.setUnitProfitability(profitability * unitProfitabilityFactor);
 
                     mockedCoin.when(() -> Coins.getCoin(COIN)).thenReturn(coin);
 

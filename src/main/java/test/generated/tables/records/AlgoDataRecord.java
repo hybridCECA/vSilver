@@ -4,15 +4,14 @@
 package test.generated.tables.records;
 
 
-import java.time.LocalDateTime;
-
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.Record3;
 import org.jooq.Row3;
 import org.jooq.impl.UpdatableRecordImpl;
-
 import test.generated.tables.AlgoData;
+
+import java.time.LocalDateTime;
 
 
 /**

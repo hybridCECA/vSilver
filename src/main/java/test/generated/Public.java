@@ -4,18 +4,13 @@
 package test.generated;
 
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
+import test.generated.tables.*;
 
-import test.generated.tables.AlgoData;
-import test.generated.tables.CoinData;
-import test.generated.tables.Config;
-import test.generated.tables.MarketData;
-import test.generated.tables.OrderLimits;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**

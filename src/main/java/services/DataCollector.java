@@ -14,7 +14,7 @@ import test.generated.tables.records.CoinDataRecord;
 import test.generated.tables.records.MarketDataRecord;
 import utils.CoinAlgoMatcher;
 import utils.Config;
-import utils.Conversions;
+import utils.Consts;
 import whattomine.Coins;
 
 import java.io.IOException;
@@ -38,19 +38,17 @@ public class DataCollector {
                 MaxProfit.updateMaxProfits();
                 System.out.println("MaxProfit done");
                 System.out.println("DataCollector done");
+                System.out.println();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         };
 
-        String periodString = Config.getConfigValue("data_collector_period_seconds");
-        int period = Integer.parseInt(periodString);
-
+        int period = Config.getConfigInt(Consts.DATA_COLLECTOR_PERIOD_SECONDS);
         service.scheduleAtFixedRate(print, 0, period, TimeUnit.SECONDS);
     }
 
     private static void collect() throws IOException, JSONException {
-
         Api.invalidateOrderbookCache();
 
         Map<AlgoDataRecord, AlgoAssociatedData> map = new HashMap<>();
@@ -66,24 +64,17 @@ public class DataCollector {
             // Get associated coins
             List<CoinDataRecord> coinRecordList = new ArrayList<>();
             for (WhatToMineCoin coin : coinList) {
-                if (CoinAlgoMatcher.match(algo, coin)) {
-                    CoinDataRecord coinRecord = new CoinDataRecord();
-                    coinRecord.setCoinName(coin.getName());
-                    coinRecord.setCoinRevenue(coin.getProfitability());
-                    coinRecord.setExchangeRate(coin.getExchangeRate());
+                if (CoinAlgoMatcher.match(algoName, coin.getAlgorithm())) {
+                    CoinDataRecord coinRecord = coin.toRecord();
                     coinRecordList.add(coinRecord);
                 }
             }
 
-            // Get associated markets
-            NicehashAlgorithmBuyInfo algoBuyInfo = Api.getAlgoBuyInfo(algoName);
-            char hashPrefix = Conversions.speedTextToHashPrefix(algoBuyInfo.getSpeedText());
-
             // Calculate fulfill speed
-            double estimatedPrice = Conversions.unitProfitToDailyBTC(algo.getProfitability(), hashPrefix);
+            NicehashAlgorithmBuyInfo algoBuyInfo = Api.getAlgoBuyInfo(algoName);
+            double estimatedPrice = algo.getDoubleProfitability();
             double minAmount = algoBuyInfo.getMinAmount();
-            String targetDaysString = Config.getConfigValue("order_target_days");
-            double targetDays = Double.parseDouble(targetDaysString);
+            double targetDays = Config.getConfigDouble(Consts.ORDER_TARGET_DAYS);
             double fulfillSpeed = minAmount / estimatedPrice / targetDays;
             fulfillSpeed = Math.max(fulfillSpeed, algoBuyInfo.getMinLimit());
 

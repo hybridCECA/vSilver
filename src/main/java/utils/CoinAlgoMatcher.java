@@ -1,8 +1,5 @@
 package utils;
 
-import dataclasses.NicehashAlgorithm;
-import dataclasses.WhatToMineCoin;
-
 import java.util.Map;
 
 public class CoinAlgoMatcher {
@@ -15,17 +12,17 @@ public class CoinAlgoMatcher {
             "decred", "blake (14r)"
     );
 
-    public static boolean match(NicehashAlgorithm algo, WhatToMineCoin coin) {
-        String algoAlgo = algo.getAlgorithm().toLowerCase();
-        String coinAlgo = coin.getAlgorithm().toLowerCase();
+    public static boolean match(String algo, String coinAlgo) {
+        algo = algo.toLowerCase();
+        coinAlgo = coinAlgo.toLowerCase();
 
-        algoAlgo = algoAlgo.replaceFirst("^grin", "");
+        algo = algo.replaceFirst("^grin", "");
 
-        String value = matches.get(algoAlgo);
+        String value = matches.get(algo);
         if (coinAlgo.equals(value)) {
             return true;
         }
 
-        return algoAlgo.equals(coinAlgo);
+        return algo.equals(coinAlgo);
     }
 }

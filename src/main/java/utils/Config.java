@@ -1,17 +1,11 @@
 package utils;
 
 import database.Connection;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Config {
-    private static final String configFileName = "config.json";
     private static String databaseUserName;
     private static String databasePassword;
     private static String databaseUrl;
@@ -46,8 +40,13 @@ public class Config {
         }
     }
 
-    public static JSONObject getConfigObject() throws JSONException, IOException {
-        String configContent = Files.readString(Paths.get(configFileName));
-        return new JSONObject(configContent);
+    public static int getConfigInt(String key) {
+        String value = getConfigValue(key);
+        return Integer.parseInt(value);
+    }
+
+    public static double getConfigDouble(String key) {
+        String value = getConfigValue(key);
+        return Double.parseDouble(value);
     }
 }

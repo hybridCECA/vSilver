@@ -13,15 +13,11 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Coins {
-    private static List<WhatToMineCoin> coinList;
-
     public static List<WhatToMineCoin> getCoinList() throws IOException, JSONException {
-        coinList = new ArrayList<>();
+        List<WhatToMineCoin> coinList = new ArrayList<>();
 
-        addCoins("https://whattomine.com/coins.json");
-        addCoins("https://whattomine.com/asic.json");
-
-        //removeUnprofitable();
+        addCoins(coinList, "https://whattomine.com/coins.json");
+        addCoins(coinList, "https://whattomine.com/asic.json");
 
         return coinList;
     }
@@ -37,26 +33,7 @@ public class Coins {
         throw new RuntimeException("Coin not found");
     }
 
-    private static void removeUnprofitable() {
-        for (int i = coinList.size() - 1; i >= 0; i--) {
-            WhatToMineCoin wtmCoin1 = coinList.get(i);
-            for (int j = i - 1; j >= 0; j--) {
-                WhatToMineCoin wtmCoin2 = coinList.get(j);
-                if (wtmCoin1.getAlgorithm().equals(wtmCoin2.getAlgorithm())) {
-                    if (wtmCoin1.getProfitability() > wtmCoin2.getProfitability()) {
-                        coinList.remove(j);
-                        i--;
-                    } else {
-                        coinList.remove(i);
-                        break;
-                    }
-                }
-
-            }
-        }
-    }
-
-    private static void addCoins(String url) throws IOException, JSONException {
+    private static void addCoins(List<WhatToMineCoin> list, String url) throws IOException, JSONException {
         JSONObject json = readJsonFromUrl(url);
         JSONObject coins = json.getJSONObject("coins");
         Iterator<String> keys = coins.keys();
@@ -72,10 +49,10 @@ public class Coins {
             WhatToMineCoin wtmCoin = new WhatToMineCoin();
             wtmCoin.setName(coinName);
             wtmCoin.setAlgorithm(coinObj.getString("algorithm"));
-            wtmCoin.setProfitability(getCoinProfitability(coinObj));
+            wtmCoin.setUnitProfitability(getCoinProfitability(coinObj));
             wtmCoin.setExchangeRate(coinObj.getDouble("exchange_rate"));
 
-            coinList.add(wtmCoin);
+            list.add(wtmCoin);
         }
     }
 
@@ -102,15 +79,6 @@ public class Coins {
             String jsonText = readAll(rd);
             return new JSONObject(jsonText);
         }
-    }
-
-    // Profitability calculated from 24 hour average exchange rate
-    static double getCoinProfitability24(JSONObject coinObj) throws JSONException {
-        if (coinObj.getString("tag").toLowerCase().equals("btc")) {
-            coinObj.put("exchange_rate", 1D);
-        }
-
-        return Conversions.BTC_TO_SATOSHIS / coinObj.getDouble("nethash") * coinObj.getDouble("block_reward") / coinObj.getDouble("block_time") * coinObj.getDouble("exchange_rate24") * 60 * 60 * 24;
     }
 
     static double getProfitabilityFromDifficulty(JSONObject coinObj) throws JSONException {

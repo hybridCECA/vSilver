@@ -12,12 +12,12 @@ public class Conversions {
         return speedText.toLowerCase().charAt(0);
     }
 
-    public static double unitProfitToDailyBTC(double unitProfitability, char hashPrefix) {
+    public static double unitProfitToDoublePrice(double unitProfitability, char hashPrefix) {
         return unitProfitability / BTC_TO_SATOSHIS * getMarketFactor(hashPrefix);
     }
 
     public static int unitProfitToIntPrice(double unitProfitability, char hashPrefix) {
-        double dailyBtc = unitProfitToDailyBTC(unitProfitability, hashPrefix);
+        double dailyBtc = unitProfitToDoublePrice(unitProfitability, hashPrefix);
         return stringPriceToIntPrice(Double.toString(dailyBtc));
     }
 

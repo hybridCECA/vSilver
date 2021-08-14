@@ -1,6 +1,5 @@
 package nicehash;
 
-import com.sun.source.util.Trees;
 import dataclasses.NicehashAlgorithm;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
@@ -8,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import utils.Config;
+import utils.Consts;
 import utils.Conversions;
 
 import java.time.Instant;
@@ -19,9 +19,9 @@ public class Api {
     private static List<NicehashAlgorithmBuyInfo> buyInfoCache;
 
     public static void loadConfig() {
-        String orgId =  Config.getConfigValue("org_id");
-        String apiKey = Config.getConfigValue("api_key");
-        String apiSecret = Config.getConfigValue("api_secret");
+        String orgId =  Config.getConfigValue(Consts.ORG_ID);
+        String apiKey = Config.getConfigValue(Consts.API_KEY);
+        String apiSecret = Config.getConfigValue(Consts.API_SECRET);
 
         api = new HttpApi("https://api2.nicehash.com/", orgId, apiKey, apiSecret);
     }
@@ -135,7 +135,7 @@ public class Api {
             double rate = algo.getDouble("paying");
 
             nicehashAlgo.setAlgorithm(algorithm);
-            nicehashAlgo.setProfitability(rate);
+            nicehashAlgo.setUnitProfitability(rate);
 
             algoList.add(nicehashAlgo);
         }
@@ -147,7 +147,7 @@ public class Api {
         return Long.toString(Instant.now().toEpochMilli());
     }
 
-    private static List<NicehashAlgorithmBuyInfo> getBuyInfo() throws JSONException {
+    public static List<NicehashAlgorithmBuyInfo> getBuyInfo() throws JSONException {
         if (buyInfoCache != null) {
             return buyInfoCache;
         }

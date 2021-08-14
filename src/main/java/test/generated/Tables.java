@@ -4,11 +4,7 @@
 package test.generated;
 
 
-import test.generated.tables.AlgoData;
-import test.generated.tables.CoinData;
-import test.generated.tables.Config;
-import test.generated.tables.MarketData;
-import test.generated.tables.OrderLimits;
+import test.generated.tables.*;
 
 
 /**

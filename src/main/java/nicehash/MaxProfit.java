@@ -6,7 +6,7 @@ import dataclasses.PriceRecord;
 import dataclasses.TriplePair;
 import org.json.JSONException;
 import utils.Config;
-import utils.Conversions;
+import utils.Consts;
 
 import java.util.List;
 import java.util.Map;
@@ -19,28 +19,21 @@ public class MaxProfit {
     public static void updateMaxProfits() throws JSONException {
         for (TriplePair pair : maxProfitCache.keySet()) {
             // Get prices
-            String analyzeMinutesString = Config.getConfigValue("max_profit_analyze_minutes");
-            int analyzeMinutes = Integer.parseInt(analyzeMinutesString);
+            int analyzeMinutes = Config.getConfigInt(Consts.MAX_PROFIT_ANALYZE_MINUTES);
             List<PriceRecord> priceRecords = Connection.getPrices(pair.getAlgo(), pair.getMarket(), analyzeMinutes);
-
-            // Get coin revenue
-            NicehashAlgorithmBuyInfo buyInfo = Api.getAlgoBuyInfo(pair.getAlgo());
-            String speedText = buyInfo.getSpeedText();
-            char hashPrefix = Conversions.speedTextToHashPrefix(speedText);
-            double revenueUnit = Connection.getCoinRevenue(pair.getCoin());
-            int revenue = Conversions.unitProfitToIntPrice(revenueUnit, hashPrefix);
 
             // Maximize profit, simple greedy algorithm
             int hitCount = 0;
             long maxProfit = Long.MIN_VALUE;
+            NicehashAlgorithmBuyInfo buyInfo = Api.getAlgoBuyInfo(pair.getAlgo());
             int maxProfitPrice = buyInfo.getMinPrice();
+            long revenue = Connection.getCoinRevenue(pair.getCoin());
             for (PriceRecord record : priceRecords) {
                 int price = record.getFulfillPrice();
 
                 hitCount += record.getCount();
 
                 long profit = (revenue - price) * hitCount;
-
                 if (profit > maxProfit) {
                     maxProfit = profit;
                     maxProfitPrice = price;

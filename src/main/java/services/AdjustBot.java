@@ -6,6 +6,7 @@ import nicehash.MaxProfit;
 import nicehash.OrderBot;
 import org.json.JSONException;
 import utils.Config;
+import utils.Consts;
 
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -19,8 +20,7 @@ public class AdjustBot {
     public static void start() {
         ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 
-        String adjustToRefreshRatioString = Config.getConfigValue("adjust_bot_adjust_to_refresh_ratio");
-        int adjustToRefreshRatio = Integer.parseInt(adjustToRefreshRatioString);
+        int adjustToRefreshRatio = Config.getConfigInt(Consts.ADJUST_BOT_ADJUST_TO_REFRESH_RATIO);
 
         Runnable run = () -> {
             try {
@@ -36,9 +36,7 @@ public class AdjustBot {
             }
         };
 
-        String periodString = Config.getConfigValue("adjust_bot_period_seconds");
-        int period = Integer.parseInt(periodString);
-
+        int period = Config.getConfigInt(Consts.ADJUST_BOT_PERIOD_SECONDS);
         service.scheduleAtFixedRate(run, 0, period, TimeUnit.SECONDS);
     }
 

@@ -9,17 +9,8 @@ import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
-
-import test.generated.tables.AlgoData;
-import test.generated.tables.CoinData;
-import test.generated.tables.Config;
-import test.generated.tables.MarketData;
-import test.generated.tables.OrderLimits;
-import test.generated.tables.records.AlgoDataRecord;
-import test.generated.tables.records.CoinDataRecord;
-import test.generated.tables.records.ConfigRecord;
-import test.generated.tables.records.MarketDataRecord;
-import test.generated.tables.records.OrderLimitsRecord;
+import test.generated.tables.*;
+import test.generated.tables.records.*;
 
 
 /**

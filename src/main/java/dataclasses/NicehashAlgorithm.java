@@ -1,8 +1,12 @@
 package dataclasses;
 
+import nicehash.Api;
+import org.json.JSONException;
+import utils.Conversions;
+
 public class NicehashAlgorithm {
     private String algorithm;
-    private double profitability;
+    private double unitProfitability;
 
     public String getAlgorithm() {
         return algorithm;
@@ -12,19 +16,32 @@ public class NicehashAlgorithm {
         this.algorithm = algorithm;
     }
 
-    public double getProfitability() {
-        return profitability;
+    public double getUnitProfitability() {
+        return unitProfitability;
     }
 
-    public void setProfitability(double profitability) {
-        this.profitability = profitability;
+    public void setUnitProfitability(double unitProfitability) {
+        this.unitProfitability = unitProfitability;
+    }
+
+    public int getIntProfitability() throws JSONException {
+        return Conversions.unitProfitToIntPrice(unitProfitability, getHashPrefix());
+    }
+
+    public double getDoubleProfitability() throws JSONException {
+        return Conversions.unitProfitToDoublePrice(unitProfitability, getHashPrefix());
+    }
+
+    private char getHashPrefix() throws JSONException {
+        NicehashAlgorithmBuyInfo algoBuyInfo = Api.getAlgoBuyInfo(algorithm);
+        return Conversions.speedTextToHashPrefix(algoBuyInfo.getSpeedText());
     }
 
     @Override
     public String toString() {
         return "NicehashAlgorithm{" +
                 "algorithm='" + algorithm + '\'' +
-                ", profitability=" + profitability +
+                ", profitability=" + unitProfitability +
                 '}';
     }
 }

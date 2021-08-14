@@ -1,10 +1,7 @@
 import nicehash.Api;
-import org.json.JSONException;
 import services.AdjustBot;
 import services.DataCollector;
 import utils.Config;
-
-import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) {

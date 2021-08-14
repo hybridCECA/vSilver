@@ -9,7 +9,6 @@ import org.jooq.Record1;
 import org.jooq.Record3;
 import org.jooq.Row3;
 import org.jooq.impl.UpdatableRecordImpl;
-
 import test.generated.tables.Config;
 
 
