@@ -1,6 +1,7 @@
 package utils;
 
 import database.Connection;
+import org.apache.http.client.config.RequestConfig;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,5 +49,15 @@ public class Config {
     public static double getConfigDouble(String key) {
         String value = getConfigValue(key);
         return Double.parseDouble(value);
+    }
+
+    public static RequestConfig getRequestConfig() {
+        int connectionTimeoutMs = getConfigInt(Consts.CONNECTION_TIMEOUT_MS);
+
+        return  RequestConfig.custom()
+                .setConnectionRequestTimeout(connectionTimeoutMs)
+                .setConnectTimeout(connectionTimeoutMs)
+                .setSocketTimeout(connectionTimeoutMs)
+                .build();
     }
 }

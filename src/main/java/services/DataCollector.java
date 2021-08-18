@@ -22,30 +22,26 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
-public class DataCollector {
-    public static void start() {
-        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+public class DataCollector extends vService {
+    @Override
+    public int getRunPeriodSeconds() {
+        return Config.getConfigInt(Consts.DATA_COLLECTOR_PERIOD_SECONDS);
+    }
 
-        Runnable print = () -> {
-            try {
-                System.out.println("DataCollector start");
-                collect();
-                System.out.println("MaxProfit start");
-                MaxProfit.updateMaxProfits();
-                System.out.println("MaxProfit done");
-                System.out.println("DataCollector done");
-                System.out.println();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        };
-
-        int period = Config.getConfigInt(Consts.DATA_COLLECTOR_PERIOD_SECONDS);
-        service.scheduleAtFixedRate(print, 0, period, TimeUnit.SECONDS);
+    @Override
+    public void run() {
+        try {
+            System.out.println("DataCollector start");
+            collect();
+            System.out.println("MaxProfit start");
+            MaxProfit.updateMaxProfits();
+            System.out.println("MaxProfit done");
+            System.out.println("DataCollector done");
+            System.out.println();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void collect() throws IOException, JSONException {

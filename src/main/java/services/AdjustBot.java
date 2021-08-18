@@ -9,35 +9,31 @@ import utils.Config;
 import utils.Consts;
 
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
-public class AdjustBot {
+public class AdjustBot extends vService {
     private static int counter = 0;
     private static final Set<OrderBot> orderBots = new HashSet<>();
 
-    public static void start() {
-        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+    @Override
+    public int getRunPeriodSeconds() {
+        return Config.getConfigInt(Consts.ADJUST_BOT_PERIOD_SECONDS);
+    }
 
+    @Override
+    public void run() {
         int adjustToRefreshRatio = Config.getConfigInt(Consts.ADJUST_BOT_ADJUST_TO_REFRESH_RATIO);
 
-        Runnable run = () -> {
-            try {
-                if (counter == 0) {
-                    synchronize();
-                }
-
-                adjust();
-
-                counter = (counter + 1) % adjustToRefreshRatio;
-            } catch (Exception e) {
-                e.printStackTrace();
+        try {
+            if (counter == 0) {
+                synchronize();
             }
-        };
 
-        int period = Config.getConfigInt(Consts.ADJUST_BOT_PERIOD_SECONDS);
-        service.scheduleAtFixedRate(run, 0, period, TimeUnit.SECONDS);
+            adjust();
+
+            counter = (counter + 1) % adjustToRefreshRatio;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void synchronize() throws JSONException {

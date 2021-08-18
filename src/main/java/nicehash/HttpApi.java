@@ -8,6 +8,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import utils.Config;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -92,6 +93,7 @@ public class HttpApi {
         StringBuffer result = new StringBuffer();
         HttpClient client = HttpClientBuilder.create().build();
         HttpGet request = new HttpGet(this.urlRoot+url);
+        request.setConfig(Config.getRequestConfig());
 
         if (auth) {
             String nonce  = UUID.randomUUID().toString();
@@ -121,6 +123,7 @@ public class HttpApi {
         StringBuffer result = new StringBuffer();
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost request = new HttpPost(this.urlRoot+url);
+        request.setConfig(Config.getRequestConfig());
 
         StringEntity entity = null;
         if (payload != null) {
@@ -163,6 +166,7 @@ public class HttpApi {
         StringBuffer result = new StringBuffer();
         HttpClient client = HttpClientBuilder.create().build();
         HttpDelete request = new HttpDelete(this.urlRoot+url);
+        request.setConfig(Config.getRequestConfig());
 
         String nonce  = UUID.randomUUID().toString();
         String digest = HttpApi.hashBySegments(this.apiSecret, this.apiKey, time, nonce, this.orgId, request.getMethod(), request.getURI().getPath(), request.getURI().getQuery(), null);
