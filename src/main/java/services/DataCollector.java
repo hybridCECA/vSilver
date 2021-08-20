@@ -6,7 +6,6 @@ import dataclasses.NicehashAlgorithm;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.Coin;
 import nicehash.NHApi;
-import nicehash.MaxProfit;
 import nicehash.Price;
 import org.json.JSONException;
 import coinsources.ZergPool;
@@ -36,9 +35,6 @@ public class DataCollector extends vService {
         try {
             LOGGER.info("Datacollector start");
             collect();
-            LOGGER.info("MaxProfit start");
-            MaxProfit.updateMaxProfits();
-            LOGGER.info("MaxProfit done");
             LOGGER.info("DataCollector done");
         } catch (Exception e) {
             LOGGER.severe(Conversions.exceptionToString(e));

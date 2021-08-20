@@ -2,7 +2,6 @@ package services;
 
 import database.Connection;
 import nicehash.NHApi;
-import nicehash.MaxProfit;
 import nicehash.OrderBot;
 import org.json.JSONException;
 import utils.Config;

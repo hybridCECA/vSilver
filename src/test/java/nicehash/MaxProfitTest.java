@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import services.MaxProfit;
 import utils.Config;
 import utils.Consts;
 

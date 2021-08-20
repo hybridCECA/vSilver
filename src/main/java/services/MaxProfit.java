@@ -1,23 +1,42 @@
-package nicehash;
+package services;
 
 import database.Connection;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.PriceRecord;
 import dataclasses.TriplePair;
+import nicehash.NHApi;
 import org.json.JSONException;
 import services.DataCollector;
 import utils.Config;
 import utils.Consts;
+import utils.Conversions;
+import utils.Logging;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-public class MaxProfit {
+public class MaxProfit extends vService {
     private static final Map<TriplePair, Integer> maxProfitCache = new ConcurrentHashMap<>();
     private static final int INVALID_VALUE = -1;
-    private final static Logger LOGGER = DataCollector.LOGGER;
+    public final static Logger LOGGER = Logging.getLogger(MaxProfit.class);
+
+    @Override
+    public int getRunPeriodSeconds() {
+        return Config.getConfigInt(Consts.MAX_PROFIT_PERIOD_SECONDS);
+    }
+
+    @Override
+    public void run() {
+        try {
+            LOGGER.info("Max profit start");
+            updateMaxProfits();
+            LOGGER.info("Max profit done");
+        } catch (Exception e) {
+            LOGGER.severe(Conversions.exceptionToString(e));
+        }
+    }
 
     public static void updateMaxProfits() throws JSONException {
         for (TriplePair pair : maxProfitCache.keySet()) {

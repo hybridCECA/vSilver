@@ -6,6 +6,7 @@ import dataclasses.TriplePair;
 import dataclasses.Coin;
 import org.json.JSONException;
 import services.AdjustBot;
+import services.MaxProfit;
 import utils.Config;
 import utils.Consts;
 import utils.Conversions;

@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.stubbing.Answer;
+import services.MaxProfit;
 import utils.Config;
 import utils.Consts;
 import coinsources.WhatToMineCoins;

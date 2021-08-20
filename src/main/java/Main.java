@@ -1,8 +1,5 @@
 import nicehash.NHApi;
-import services.AdjustBot;
-import services.DataCollector;
-import services.TransferBot;
-import services.vService;
+import services.*;
 import southxchange.SXApi;
 import utils.Config;
 
@@ -20,13 +17,15 @@ public class Main {
                 // Adjust bot may interfere in dev env
                 services = List.of(
                         new DataCollector(),
-                        new TransferBot()
+                        new TransferBot(),
+                        new MaxProfit()
                 );
             } else {
                 services = List.of(
                         new AdjustBot(),
                         new DataCollector(),
-                        new TransferBot()
+                        new TransferBot(),
+                        new MaxProfit()
                 );
             }
 
