@@ -5,6 +5,7 @@ import dataclasses.NicehashOrder;
 import dataclasses.TriplePair;
 import dataclasses.WhatToMineCoin;
 import org.json.JSONException;
+import services.AdjustBot;
 import utils.Config;
 import utils.Consts;
 import utils.Conversions;
@@ -12,13 +13,15 @@ import whattomine.Coins;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class OrderBot implements Comparable<OrderBot> {
-    private String orderId;
+    private static final Logger LOGGER = AdjustBot.LOGGER;
+    private final String orderId;
     private double limit;
-    private String coinName;
-    private String algoName;
-    private String marketName;
+    private final String coinName;
+    private final String algoName;
+    private final String marketName;
 
     public OrderBot(String orderId, double limit, String coinName, String algoName, String marketName) {
         this.orderId = orderId;
@@ -30,29 +33,29 @@ public class OrderBot implements Comparable<OrderBot> {
 
     public void run() {
         try {
-            Api.invalidateOrderbookCache(algoName);
+            NHApi.invalidateOrderbookCache(algoName);
 
             int price = Price.getSweepPrice(limit, algoName, marketName, orderId);
-            System.out.println("Target price: " + price);
+            LOGGER.info("Target price: " + price);
 
-            NicehashAlgorithmBuyInfo algoBuyInfo = Api.getAlgoBuyInfo(algoName);
+            NicehashAlgorithmBuyInfo algoBuyInfo = NHApi.getAlgoBuyInfo(algoName);
             char hashPrefix = Conversions.speedTextToHashPrefix(algoBuyInfo.getSpeedText());
 
             int profitabilityBound = getProfitabilityBound(coinName);
-            System.out.println("Profitability bound: " + profitabilityBound);
+            LOGGER.info("Profitability bound: " + profitabilityBound);
             price = Math.min(price, profitabilityBound);
 
             TriplePair pair = getTriplePair();
             if (!MaxProfit.hasMaxProfit(pair)) {
-                System.out.println("No max profit yet, waiting...");
+                LOGGER.info("No max profit yet, waiting...");
                 return;
             }
             int maxProfitabilityBound = MaxProfit.getMaxProfit(pair);
-            System.out.println("Max profitability bound: " + maxProfitabilityBound);
+            LOGGER.info("Max profitability bound: " + maxProfitabilityBound);
             price = Math.min(price, maxProfitabilityBound);
 
             int decraseBound = getPriceDecreaseBound(orderId, algoName, marketName);
-            System.out.println("Decrease bound: " + decraseBound);
+            LOGGER.info("Decrease bound: " + decraseBound);
             price = Math.max(price, decraseBound);
 
             double submitLimit = limit;
@@ -60,7 +63,7 @@ public class OrderBot implements Comparable<OrderBot> {
                 submitLimit = algoBuyInfo.getMinLimit();
             }
 
-            Api.updateOrder(orderId, price, Conversions.getDisplayMarketFactor(hashPrefix), Conversions.getMarketFactor(hashPrefix), submitLimit);
+            NHApi.updateOrder(orderId, price, Conversions.getDisplayMarketFactor(hashPrefix), Conversions.getMarketFactor(hashPrefix), submitLimit);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -81,8 +84,8 @@ public class OrderBot implements Comparable<OrderBot> {
     }
 
     public int getPriceDecreaseBound(String id, String algoName, String market) throws JSONException {
-        NicehashOrder order = Api.getOrder(id, algoName, market);
-        int downStep = Api.getAlgoBuyInfo(algoName).getDownStep();
+        NicehashOrder order = NHApi.getOrder(id, algoName, market);
+        int downStep = NHApi.getAlgoBuyInfo(algoName).getDownStep();
 
         return order.getPrice() + downStep;
     }

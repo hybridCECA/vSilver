@@ -3,9 +3,9 @@ package dataclasses;
 import java.util.Objects;
 
 public class TriplePair implements Comparable<TriplePair> {
-    private String algo;
-    private String market;
-    private String coin;
+    private final String algo;
+    private final String market;
+    private final String coin;
 
     public TriplePair(String algo, String market, String coin) {
         this.algo = algo;

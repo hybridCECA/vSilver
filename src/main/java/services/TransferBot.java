@@ -1,15 +1,17 @@
 package services;
 
 import dataclasses.SXBalance;
-import nicehash.MaxProfit;
 import southxchange.SXApi;
 import utils.Config;
 import utils.Consts;
+import utils.Logging;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 public class TransferBot extends vService {
     private static final String REFERENCE_CURRENCY = "BTC";
+    private final static Logger LOGGER = Logging.getLogger(TransferBot.class);
 
     @Override
     public int getRunPeriodSeconds() {
@@ -19,10 +21,9 @@ public class TransferBot extends vService {
     @Override
     public void run() {
         try {
-            System.out.println("Transfer bot start");
+            LOGGER.info("Transfer bot start");
             transfer();
-            System.out.println("Transfer bot done");
-            System.out.println();
+            LOGGER.info("Transfer bot done");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -36,7 +37,7 @@ public class TransferBot extends vService {
                 continue;
             }
 
-            System.out.println("Selling " + balance.getAvailable() + " " + balance.getCurrency());
+            LOGGER.info("Selling " + balance.getAvailable() + " " + balance.getCurrency());
             SXApi.sell(balance.getCurrency(), REFERENCE_CURRENCY, balance.getAvailable());
         }
     }

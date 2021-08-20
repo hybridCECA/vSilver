@@ -7,13 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NicehashAlgorithmBuyInfo {
-    private String name;
-    private int downStep;
-    private double minLimit;
-    private double minAmount;
-    private List<String> markets;
-    private String speedText;
-    private int minPrice;
+    private final String name;
+    private final int downStep;
+    private final double minLimit;
+    private final double minAmount;
+    private final List<String> markets;
+    private final String speedText;
+    private final int minPrice;
 
     public NicehashAlgorithmBuyInfo(String name, int downStep, double minLimit, double minAmount, JSONArray markets, String speedText, int minPrice) throws JSONException {
         this.name = name;

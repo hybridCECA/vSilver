@@ -1,18 +1,21 @@
 package services;
 
 import database.Connection;
-import nicehash.Api;
+import nicehash.NHApi;
 import nicehash.MaxProfit;
 import nicehash.OrderBot;
 import org.json.JSONException;
 import utils.Config;
 import utils.Consts;
+import utils.Logging;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 public class AdjustBot extends vService {
     private static int counter = 0;
     private static final Set<OrderBot> orderBots = new HashSet<>();
+    public final static Logger LOGGER = Logging.getLogger(AdjustBot.class);
 
     @Override
     public int getRunPeriodSeconds() {
@@ -38,8 +41,8 @@ public class AdjustBot extends vService {
 
     private static void synchronize() throws JSONException {
         // Refresh
-        System.out.println("Refreshing order bots");
-        Set<OrderBot> newActiveOrders = Api.getActiveOrders();
+        LOGGER.info("Refreshing order bots");
+        Set<OrderBot> newActiveOrders = NHApi.getActiveOrders();
 
         // order_id -> limit
         Map<String, Double> orderLimits = Connection.getOrderLimits();
@@ -82,15 +85,14 @@ public class AdjustBot extends vService {
             }
         }
 
-        System.out.println("Done refreshing order bots");
+        LOGGER.info("Done refreshing order bots");
     }
 
     private static void adjust() {
         // Adjust
         for (OrderBot bot : orderBots) {
-            System.out.println("Order id " + bot.getOrderId() + ":");
+            LOGGER.info("Order id " + bot.getOrderId() + ":");
             bot.run();
-            System.out.println();
         }
     }
 }

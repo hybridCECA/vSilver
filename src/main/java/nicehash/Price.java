@@ -9,15 +9,15 @@ import java.util.List;
 
 public class Price {
     public static void main(String[] args) throws JSONException {
-        Api.loadConfig();
+        NHApi.loadConfig();
         System.out.println(getSweepPrice(0.01, "cryptonightr", "EU", "228f50b7-9b91-4c2b-b10e-67991347c536"));
-        System.out.println(getSpeedAtPrice(Api.getOrderbook("cryptonightr", "EU"), 57, "228f50b7-9b91-4c2b-b10e-67991347c536"));
+        System.out.println(getSpeedAtPrice(NHApi.getOrderbook("cryptonightr", "EU"), 57, "228f50b7-9b91-4c2b-b10e-67991347c536"));
     }
 
     public static int getSweepPrice(double fulfillSpeed, String algoName, String market, String id) throws JSONException {
         int step = 1;
 
-        List<NicehashOrder> orderbook = Api.getOrderbook(algoName, market);
+        List<NicehashOrder> orderbook = NHApi.getOrderbook(algoName, market);
         int maxPrice = orderbook.get(0).getPrice() + step;
 
         for (int price = 0; price <= maxPrice; price += step) {
@@ -108,7 +108,7 @@ public class Price {
 
     // Overloads without current order id
     public static int getSweepPrice(double fulfillSpeed, String algoName, String market) throws JSONException {
-        List<NicehashOrder> orderbook = Api.getOrderbook(algoName, market);
+        List<NicehashOrder> orderbook = NHApi.getOrderbook(algoName, market);
 
         if (orderbook.size() == 0) {
             return 1;
@@ -130,7 +130,7 @@ public class Price {
     }
 
     public static double getTotalSpeed(String algoName, String market) throws JSONException {
-        List<NicehashOrder> orderbook = Api.getOrderbook(algoName, market);
+        List<NicehashOrder> orderbook = NHApi.getOrderbook(algoName, market);
 
         return orderbook.stream().mapToDouble(NicehashOrder::getSpeed).sum();
     }

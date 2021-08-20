@@ -1,8 +1,8 @@
 package dataclasses;
 
 public class SXBalance {
-    String currency;
-    double available;
+    final String currency;
+    final double available;
 
     public SXBalance(String currency, double available) {
         this.currency = currency;

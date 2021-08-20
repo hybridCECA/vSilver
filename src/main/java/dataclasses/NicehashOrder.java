@@ -1,10 +1,10 @@
 package dataclasses;
 
 public class NicehashOrder implements Comparable<NicehashOrder> {
-    private int price;
+    private final int price;
     private double speed;
-    private String id;
-    private double limit;
+    private final String id;
+    private final double limit;
 
     public NicehashOrder(NicehashOrder otherOrder) {
         this.price = otherOrder.price;

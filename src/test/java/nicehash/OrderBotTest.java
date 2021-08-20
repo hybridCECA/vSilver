@@ -10,6 +10,8 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.stubbing.Answer;
+import utils.Config;
+import utils.Consts;
 import whattomine.Coins;
 
 import java.util.List;
@@ -59,47 +61,54 @@ class OrderBotTest {
 
     void runTest(List<NicehashOrder> orderbook, int expectedPrice, int profitability, int maxProfitBound, double expectedLimit) throws JSONException {
         // Mock scope
-        try (MockedStatic<Api> mockedApi = mockStatic(Api.class)) {
+        try (MockedStatic<NHApi> mockedApi = mockStatic(NHApi.class)) {
             AtomicBoolean correctPrice = new AtomicBoolean(false);
             Answer<?> setCorrect = invocation -> {
                 correctPrice.set(true);
                 return null;
             };
 
+            NicehashAlgorithmBuyInfo buyInfo = new NicehashAlgorithmBuyInfo(ALGO, -1, MIN_LIMIT, 0.1, new JSONArray(), "KH", 1);
+            List<NicehashAlgorithmBuyInfo> buyInfoList = List.of(buyInfo);
+
             // Mocking
-            mockedApi.when(() -> Api.getOrderbook(ALGO, MARKET)).thenReturn(orderbook);
-            mockedApi.when(() -> Api.updateOrder(ORDER_ID, expectedPrice, "KH", 1000, expectedLimit)).then(setCorrect);
-            mockedApi.when(() -> Api.getAlgoBuyInfo(ALGO)).thenReturn(new NicehashAlgorithmBuyInfo(ALGO, -1, MIN_LIMIT, 0.1, new JSONArray(), "KH", 1));
-            mockedApi.when(() -> Api.getOrder(ORDER_ID, ALGO, MARKET)).thenCallRealMethod();
+            mockedApi.when(() -> NHApi.getOrderbook(ALGO, MARKET)).thenReturn(orderbook);
+            mockedApi.when(() -> NHApi.updateOrder(ORDER_ID, expectedPrice, "KH", 1000, expectedLimit)).then(setCorrect);
+            mockedApi.when(() -> NHApi.getAlgoBuyInfo(ALGO)).thenReturn(buyInfo);
+            mockedApi.when(NHApi::getBuyInfo).thenReturn(buyInfoList);
+            mockedApi.when(() -> NHApi.getOrder(ORDER_ID, ALGO, MARKET)).thenCallRealMethod();
 
             try (MockedStatic<Coins> mockedCoin = mockStatic(Coins.class)) {
+                WhatToMineCoin coin = new WhatToMineCoin();
+                coin.setName(COIN);
+                coin.setAlgorithm(ALGO);
+                double unitProfitabilityFactor = 1.0 / 10000.0 * 100E6 / 1E3;
+                coin.setUnitProfitability(profitability * unitProfitabilityFactor);
+
+                mockedCoin.when(() -> Coins.getCoin(COIN)).thenReturn(coin);
 
                 try (MockedStatic<MaxProfit> mockedMaxProfit = mockStatic(MaxProfit.class)) {
                     TriplePair pair = new TriplePair(ALGO, MARKET, COIN);
                     mockedMaxProfit.when(() -> MaxProfit.getMaxProfit(pair)).thenReturn(maxProfitBound);
                     mockedMaxProfit.when(() -> MaxProfit.hasMaxProfit(pair)).thenReturn(true);
 
-                    WhatToMineCoin coin = new WhatToMineCoin();
-                    coin.setName(COIN);
-                    coin.setAlgorithm(ALGO);
-                    double unitProfitabilityFactor = 1.0 / 10000.0 * 100E6 / 1E3;
-                    coin.setUnitProfitability(profitability * unitProfitabilityFactor);
+                    try (MockedStatic<Config> mockedConfig = mockStatic(Config.class)) {
+                        mockedConfig.when(() -> Config.getConfigDouble(Consts.ORDER_BOT_MIN_PROFIT_MARGIN)).thenReturn(1.0);
 
-                    mockedCoin.when(() -> Coins.getCoin(COIN)).thenReturn(coin);
+                        JSONObject config = new JSONObject();
+                        config.put("min_profit_margin", 1);
+                        config.put("coin_name", COIN);
+                        config.put("algo_name", ALGO);
+                        config.put("hash_unit", "k");
+                        config.put("order_id", ORDER_ID);
+                        config.put("market", MARKET);
+                        config.put("fulfill_speed", ORDER_LIMIT);
+                        config.put("limit", ORDER_LIMIT);
 
-                    JSONObject config = new JSONObject();
-                    config.put("min_profit_margin", 1);
-                    config.put("coin_name", COIN);
-                    config.put("algo_name", ALGO);
-                    config.put("hash_unit", "k");
-                    config.put("order_id", ORDER_ID);
-                    config.put("market", MARKET);
-                    config.put("fulfill_speed", ORDER_LIMIT);
-                    config.put("limit", ORDER_LIMIT);
+                        new OrderBot(ORDER_ID, ORDER_LIMIT, COIN, ALGO, MARKET).run();
 
-                    new OrderBot(ORDER_ID, ORDER_LIMIT, COIN, ALGO, MARKET).run();
-
-                    assertTrue(correctPrice.get());
+                        assertTrue(correctPrice.get());
+                    }
                 }
             }
         }

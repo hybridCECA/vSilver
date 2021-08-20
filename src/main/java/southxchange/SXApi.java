@@ -1,7 +1,6 @@
 package southxchange;
 
 import dataclasses.SXBalance;
-import nicehash.HttpApi;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import utils.Config;

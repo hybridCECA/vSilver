@@ -6,15 +6,17 @@ import dataclasses.NicehashOrder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import services.AdjustBot;
 import utils.Config;
 import utils.Consts;
 import utils.Conversions;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.logging.Logger;
 
-public class Api {
-    private static HttpApi api;
+public class NHApi {
+    private static NHHttpApi api;
     private static final Map<String, JSONObject> orderbookCache = new HashMap<>();
     private static List<NicehashAlgorithmBuyInfo> buyInfoCache;
 
@@ -23,15 +25,17 @@ public class Api {
         String apiKey = Config.getConfigValue(Consts.API_KEY);
         String apiSecret = Config.getConfigValue(Consts.API_SECRET);
 
-        api = new HttpApi("https://api2.nicehash.com/", orgId, apiKey, apiSecret);
+        api = new NHHttpApi("https://api2.nicehash.com/", orgId, apiKey, apiSecret);
     }
 
     public static void updateOrder(String id, int price, String displayMarketFactor, double marketFactor, double limit) throws JSONException {
+        Logger logger = AdjustBot.LOGGER;
+
         String priceString = Conversions.intPriceToStringPrice(price);
-        System.out.println("Submit price: " + priceString);
+        logger.info("Submit price: " + priceString);
 
         String limitString = Conversions.doublePriceToStringPrice(limit);
-        System.out.println("Submit limit: " + limit);
+        logger.info("Submit limit: " + limit);
 
         JSONObject body = new JSONObject();
         body.put("price", priceString);
@@ -40,7 +44,7 @@ public class Api {
         body.put("marketFactor", marketFactor);
 
         String response = api.post("main/api/v2/hashpower/order/" + id + "/updatePriceAndLimit", body.toString(),  getTime(), true);
-        System.out.println("Response: " + response);
+        logger.info("Response: " + response);
     }
 
     public static NicehashOrder getOrder(String id, String algoName, String market) throws JSONException {

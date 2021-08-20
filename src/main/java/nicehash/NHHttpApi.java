@@ -23,17 +23,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class HttpApi {
+public class NHHttpApi {
 
     private static final Charset CHARSET = StandardCharsets.ISO_8859_1;
     private static final String HMAC_SHA256 = "HmacSHA256";
 
-    private String urlRoot;
-    private String orgId;
-    private String apiKey;
-    private String apiSecret;
+    private final String urlRoot;
+    private final String orgId;
+    private final String apiKey;
+    private final String apiSecret;
 
-    public HttpApi(String urlRoot, String orgId, String apiKey, String apiSecret) {
+    public NHHttpApi(String urlRoot, String orgId, String apiKey, String apiSecret) {
         this.urlRoot = urlRoot;
         this.orgId = orgId;
         this.apiKey = apiKey;
@@ -97,7 +97,7 @@ public class HttpApi {
 
         if (auth) {
             String nonce  = UUID.randomUUID().toString();
-            String digest = HttpApi.hashBySegments(this.apiSecret, this.apiKey, time, nonce, this.orgId, request.getMethod(), request.getURI().getPath(), request.getURI().getQuery(), null);
+            String digest = NHHttpApi.hashBySegments(this.apiSecret, this.apiKey, time, nonce, this.orgId, request.getMethod(), request.getURI().getPath(), request.getURI().getQuery(), null);
 
             request.setHeader("X-Time", time);
             request.setHeader("X-Nonce", nonce);
@@ -109,7 +109,7 @@ public class HttpApi {
             HttpResponse response = client.execute(request);
             BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
 
-            String line = "";
+            String line;
             while ((line = rd.readLine()) != null) {
                 result.append(line);
             }
@@ -139,7 +139,7 @@ public class HttpApi {
         request.setHeader("Content-type", "application/json");
 
         String nonce  = UUID.randomUUID().toString();
-        String digest = HttpApi.hashBySegments(this.apiSecret, this.apiKey, time, nonce, this.orgId, request.getMethod(), request.getURI().getPath(), request.getURI().getQuery(), payload);
+        String digest = NHHttpApi.hashBySegments(this.apiSecret, this.apiKey, time, nonce, this.orgId, request.getMethod(), request.getURI().getPath(), request.getURI().getQuery(), payload);
 
         request.setHeader("X-Time", time);
         request.setHeader("X-Nonce", nonce);
@@ -152,7 +152,7 @@ public class HttpApi {
             HttpResponse response = client.execute(request);
             BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
 
-            String line = "";
+            String line;
             while ((line = rd.readLine()) != null) {
                 result.append(line);
             }
@@ -169,7 +169,7 @@ public class HttpApi {
         request.setConfig(Config.getRequestConfig());
 
         String nonce  = UUID.randomUUID().toString();
-        String digest = HttpApi.hashBySegments(this.apiSecret, this.apiKey, time, nonce, this.orgId, request.getMethod(), request.getURI().getPath(), request.getURI().getQuery(), null);
+        String digest = NHHttpApi.hashBySegments(this.apiSecret, this.apiKey, time, nonce, this.orgId, request.getMethod(), request.getURI().getPath(), request.getURI().getQuery(), null);
 
         request.setHeader("X-Time", time);
         request.setHeader("X-Nonce", nonce);
@@ -182,7 +182,7 @@ public class HttpApi {
             HttpResponse response = client.execute(request);
             BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
 
-            String line = "";
+            String line;
             while ((line = rd.readLine()) != null) {
                 result.append(line);
             }

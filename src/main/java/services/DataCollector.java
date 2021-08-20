@@ -5,7 +5,7 @@ import dataclasses.AlgoAssociatedData;
 import dataclasses.NicehashAlgorithm;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.WhatToMineCoin;
-import nicehash.Api;
+import nicehash.NHApi;
 import nicehash.MaxProfit;
 import nicehash.Price;
 import org.json.JSONException;
@@ -15,6 +15,7 @@ import test.generated.tables.records.MarketDataRecord;
 import utils.CoinAlgoMatcher;
 import utils.Config;
 import utils.Consts;
+import utils.Logging;
 import whattomine.Coins;
 
 import java.io.IOException;
@@ -22,8 +23,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class DataCollector extends vService {
+    public final static Logger LOGGER = Logging.getLogger(DataCollector.class);
+
     @Override
     public int getRunPeriodSeconds() {
         return Config.getConfigInt(Consts.DATA_COLLECTOR_PERIOD_SECONDS);
@@ -32,24 +36,23 @@ public class DataCollector extends vService {
     @Override
     public void run() {
         try {
-            System.out.println("DataCollector start");
+            LOGGER.info("Datacollector start");
             collect();
-            System.out.println("MaxProfit start");
+            LOGGER.info("MaxProfit start");
             MaxProfit.updateMaxProfits();
-            System.out.println("MaxProfit done");
-            System.out.println("DataCollector done");
-            System.out.println();
+            LOGGER.info("MaxProfit done");
+            LOGGER.info("DataCollector done");
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.severe(e.toString());
         }
     }
 
     private static void collect() throws IOException, JSONException {
-        Api.invalidateOrderbookCache();
+        NHApi.invalidateOrderbookCache();
 
         Map<AlgoDataRecord, AlgoAssociatedData> map = new HashMap<>();
 
-        List<NicehashAlgorithm> algoList = Api.getAlgoList();
+        List<NicehashAlgorithm> algoList = NHApi.getAlgoList();
         List<WhatToMineCoin> coinList = Coins.getCoinList();
         for (NicehashAlgorithm algo : algoList) {
             String algoName = algo.getAlgorithm();
@@ -67,7 +70,7 @@ public class DataCollector extends vService {
             }
 
             // Calculate fulfill speed
-            NicehashAlgorithmBuyInfo algoBuyInfo = Api.getAlgoBuyInfo(algoName);
+            NicehashAlgorithmBuyInfo algoBuyInfo = NHApi.getAlgoBuyInfo(algoName);
             double estimatedPrice = algo.getDoubleProfitability();
             double minAmount = algoBuyInfo.getMinAmount();
             double targetDays = Config.getConfigDouble(Consts.ORDER_TARGET_DAYS);

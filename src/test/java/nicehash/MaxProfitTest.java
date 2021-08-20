@@ -56,8 +56,8 @@ class MaxProfitTest {
                 mockedConnection.when(() -> Connection.getPrices(ALGO, MARKET, ANALYZE_MINUTES)).thenReturn(priceRecords);
                 mockedConnection.when(() -> Connection.getCoinRevenue(COIN)).thenReturn(revenue);
 
-                try (MockedStatic<Api> mockedApi = mockStatic(Api.class)) {
-                    mockedApi.when(() -> Api.getAlgoBuyInfo(ALGO)).thenReturn(new NicehashAlgorithmBuyInfo(ALGO, 0, 0, 0, new JSONArray(), "k", 0));
+                try (MockedStatic<NHApi> mockedApi = mockStatic(NHApi.class)) {
+                    mockedApi.when(() -> NHApi.getAlgoBuyInfo(ALGO)).thenReturn(new NicehashAlgorithmBuyInfo(ALGO, 0, 0, 0, new JSONArray(), "k", 0));
 
                     MaxProfit.register(PAIR);
                     assertFalse(MaxProfit.hasMaxProfit(PAIR));

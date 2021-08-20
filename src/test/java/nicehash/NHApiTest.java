@@ -12,7 +12,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ApiTest {
+class NHApiTest {
     private static final String ALGO_NAME = "SHA256";
     private static final String MARKET = "EU";
 
@@ -23,12 +23,12 @@ class ApiTest {
 
     @Test
     void testOrder() throws JSONException {
-        Api.loadConfig();
-        List<NicehashOrder> orderbook = Api.getOrderbook(ALGO_NAME, MARKET);
+        NHApi.loadConfig();
+        List<NicehashOrder> orderbook = NHApi.getOrderbook(ALGO_NAME, MARKET);
         assertTrue(orderbook.size() > 1);
 
         NicehashOrder middleOrder = orderbook.get(orderbook.size() / 2);
-        NicehashOrder order = Api.getOrder(middleOrder.getId(), ALGO_NAME, MARKET);
+        NicehashOrder order = NHApi.getOrder(middleOrder.getId(), ALGO_NAME, MARKET);
         assertEquals(middleOrder.getPrice(), order.getPrice());
         assertEquals(middleOrder.getSpeed(), order.getSpeed());
         assertEquals(middleOrder.getId(), order.getId());
@@ -40,15 +40,15 @@ class ApiTest {
 
     @Test
     void testAlgos() throws JSONException {
-        Api.loadConfig();
+        NHApi.loadConfig();
 
-        List<NicehashAlgorithm> algoList = Api.getAlgoList();
+        List<NicehashAlgorithm> algoList = NHApi.getAlgoList();
         assertTrue(algoList.size() > 1);
 
-        int downStep = Api.getAlgoBuyInfo(ALGO_NAME).getDownStep();
+        int downStep = NHApi.getAlgoBuyInfo(ALGO_NAME).getDownStep();
         assertEquals(downStep, EXPECTED_DOWNSTEP);
 
-        double minLimit = Api.getAlgoBuyInfo(ALGO_NAME).getMinLimit();
+        double minLimit = NHApi.getAlgoBuyInfo(ALGO_NAME).getMinLimit();
         assertEquals(minLimit, EXPECTED_MIN_LIMIT);
     }
 }

@@ -1,8 +1,8 @@
 package dataclasses;
 
 public class PriceRecord {
-    private int fulfillPrice;
-    private int count;
+    private final int fulfillPrice;
+    private final int count;
 
     public PriceRecord(int fulfillPrice, int count) {
         this.fulfillPrice = fulfillPrice;

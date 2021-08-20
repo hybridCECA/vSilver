@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>NicehashTest</artifactId>
+    <artifactId>vSilver</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <dependencies>
@@ -146,7 +146,7 @@
                             <!-- All elements that are excluded from your schema
                                  (A Java regular expression. Use the pipe to separate several expressions).
                                  Excludes match before includes, i.e. excludes have a higher priority -->
-                            <excludes></excludes>
+                            <excludes/>
                         </database>
 
                         <target>

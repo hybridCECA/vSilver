@@ -5,16 +5,19 @@ import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.PriceRecord;
 import dataclasses.TriplePair;
 import org.json.JSONException;
+import services.DataCollector;
 import utils.Config;
 import utils.Consts;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 public class MaxProfit {
     private static final Map<TriplePair, Integer> maxProfitCache = new ConcurrentHashMap<>();
     private static final int INVALID_VALUE = -1;
+    private final static Logger LOGGER = DataCollector.LOGGER;
 
     public static void updateMaxProfits() throws JSONException {
         for (TriplePair pair : maxProfitCache.keySet()) {
@@ -25,7 +28,7 @@ public class MaxProfit {
             // Maximize profit, simple greedy algorithm
             int hitCount = 0;
             long maxProfit = Long.MIN_VALUE;
-            NicehashAlgorithmBuyInfo buyInfo = Api.getAlgoBuyInfo(pair.getAlgo());
+            NicehashAlgorithmBuyInfo buyInfo = NHApi.getAlgoBuyInfo(pair.getAlgo());
             int maxProfitPrice = buyInfo.getMinPrice();
             long revenue = Connection.getCoinRevenue(pair.getCoin());
             for (PriceRecord record : priceRecords) {
@@ -42,7 +45,7 @@ public class MaxProfit {
 
             maxProfitCache.put(pair, maxProfitPrice);
 
-            System.out.println("Max profit price: " + maxProfitPrice);
+            LOGGER.info(pair.getCoin() + " max profit price: " + maxProfitPrice);
         }
     }
 
