@@ -8,7 +8,7 @@ import utils.Conversions;
 
 import java.util.List;
 
-public class WhatToMineCoin {
+public class Coin {
     private String name;
     private double exchangeRate;
     private double unitProfitability;
@@ -71,5 +71,13 @@ public class WhatToMineCoin {
         coinRecord.setExchangeRate(exchangeRate);
 
         return coinRecord;
+    }
+
+    @Override
+    public String toString() {
+        return "Coin{" +
+                "name='" + name + '\'' +
+                ", algorithm='" + algorithm + '\'' +
+                '}';
     }
 }

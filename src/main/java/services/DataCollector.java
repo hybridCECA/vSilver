@@ -4,19 +4,17 @@ import database.Connection;
 import dataclasses.AlgoAssociatedData;
 import dataclasses.NicehashAlgorithm;
 import dataclasses.NicehashAlgorithmBuyInfo;
-import dataclasses.WhatToMineCoin;
+import dataclasses.Coin;
 import nicehash.NHApi;
 import nicehash.MaxProfit;
 import nicehash.Price;
 import org.json.JSONException;
+import coinsources.ZergPool;
 import test.generated.tables.records.AlgoDataRecord;
 import test.generated.tables.records.CoinDataRecord;
 import test.generated.tables.records.MarketDataRecord;
-import utils.CoinAlgoMatcher;
-import utils.Config;
-import utils.Consts;
-import utils.Logging;
-import whattomine.Coins;
+import utils.*;
+import coinsources.WhatToMineCoins;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,7 +41,7 @@ public class DataCollector extends vService {
             LOGGER.info("MaxProfit done");
             LOGGER.info("DataCollector done");
         } catch (Exception e) {
-            LOGGER.severe(e.toString());
+            LOGGER.severe(Conversions.exceptionToString(e));
         }
     }
 
@@ -53,7 +51,11 @@ public class DataCollector extends vService {
         Map<AlgoDataRecord, AlgoAssociatedData> map = new HashMap<>();
 
         List<NicehashAlgorithm> algoList = NHApi.getAlgoList();
-        List<WhatToMineCoin> coinList = Coins.getCoinList();
+
+        List<Coin> coinList = new ArrayList<>();
+        coinList.addAll(WhatToMineCoins.getCoinList());
+        coinList.addAll(ZergPool.getRevenueSources());
+
         for (NicehashAlgorithm algo : algoList) {
             String algoName = algo.getAlgorithm();
 
@@ -62,7 +64,7 @@ public class DataCollector extends vService {
 
             // Get associated coins
             List<CoinDataRecord> coinRecordList = new ArrayList<>();
-            for (WhatToMineCoin coin : coinList) {
+            for (Coin coin : coinList) {
                 if (CoinAlgoMatcher.match(algoName, coin.getAlgorithm())) {
                     CoinDataRecord coinRecord = coin.toRecord();
                     coinRecordList.add(coinRecord);

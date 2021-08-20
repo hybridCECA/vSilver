@@ -7,6 +7,7 @@ import nicehash.OrderBot;
 import org.json.JSONException;
 import utils.Config;
 import utils.Consts;
+import utils.Conversions;
 import utils.Logging;
 
 import java.util.*;
@@ -35,7 +36,7 @@ public class AdjustBot extends vService {
 
             counter = (counter + 1) % adjustToRefreshRatio;
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.severe(Conversions.exceptionToString(e));
         }
     }
 

@@ -3,7 +3,7 @@ package nicehash;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
 import dataclasses.TriplePair;
-import dataclasses.WhatToMineCoin;
+import dataclasses.Coin;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,7 +12,7 @@ import org.mockito.MockedStatic;
 import org.mockito.stubbing.Answer;
 import utils.Config;
 import utils.Consts;
-import whattomine.Coins;
+import coinsources.WhatToMineCoins;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -78,14 +78,14 @@ class OrderBotTest {
             mockedApi.when(NHApi::getBuyInfo).thenReturn(buyInfoList);
             mockedApi.when(() -> NHApi.getOrder(ORDER_ID, ALGO, MARKET)).thenCallRealMethod();
 
-            try (MockedStatic<Coins> mockedCoin = mockStatic(Coins.class)) {
-                WhatToMineCoin coin = new WhatToMineCoin();
+            try (MockedStatic<WhatToMineCoins> mockedCoin = mockStatic(WhatToMineCoins.class)) {
+                Coin coin = new Coin();
                 coin.setName(COIN);
                 coin.setAlgorithm(ALGO);
                 double unitProfitabilityFactor = 1.0 / 10000.0 * 100E6 / 1E3;
                 coin.setUnitProfitability(profitability * unitProfitabilityFactor);
 
-                mockedCoin.when(() -> Coins.getCoin(COIN)).thenReturn(coin);
+                mockedCoin.when(() -> WhatToMineCoins.getCoin(COIN)).thenReturn(coin);
 
                 try (MockedStatic<MaxProfit> mockedMaxProfit = mockStatic(MaxProfit.class)) {
                     TriplePair pair = new TriplePair(ALGO, MARKET, COIN);

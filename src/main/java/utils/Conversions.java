@@ -1,12 +1,16 @@
 package utils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.DecimalFormat;
 import java.util.Map;
 
 public class Conversions {
     public static final double BTC_TO_SATOSHIS = 100E6;
+    public static final double MBTC_TO_SATOSHIS = 100E3;
     public static final Map<Character, Double> marketFactorMap = Map.of('k', 1E3, 'm', 1E6, 'g', 1E9, 't', 1e12, 'p', 1e15);
     public static final int STRING_PRICE_TO_INT_PRICE = 10000;
+    public static final int DAYS_TO_SECONDS = 60 * 60 * 24;
 
     public static char speedTextToHashPrefix(String speedText) {
         return speedText.toLowerCase().charAt(0);
@@ -44,5 +48,11 @@ public class Conversions {
     public static String intPriceToStringPrice(int price) {
         double doublePrice = ((double) price) / STRING_PRICE_TO_INT_PRICE;
         return doublePriceToStringPrice(doublePrice);
+    }
+
+    public static String exceptionToString(Exception exception) {
+        StringWriter sw = new StringWriter();
+        exception.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
     }
 }

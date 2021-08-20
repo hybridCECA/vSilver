@@ -3,13 +3,13 @@ package nicehash;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
 import dataclasses.TriplePair;
-import dataclasses.WhatToMineCoin;
+import dataclasses.Coin;
 import org.json.JSONException;
 import services.AdjustBot;
 import utils.Config;
 import utils.Consts;
 import utils.Conversions;
-import whattomine.Coins;
+import coinsources.WhatToMineCoins;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -75,7 +75,7 @@ public class OrderBot implements Comparable<OrderBot> {
     }
 
     public int getProfitabilityBound(String coinName) throws IOException, JSONException {
-        WhatToMineCoin coin = Coins.getCoin(coinName);
+        Coin coin = WhatToMineCoins.getCoin(coinName);
         double minProfitMargin = Config.getConfigDouble(Consts.ORDER_BOT_MIN_PROFIT_MARGIN);
 
         double profitabilityBound = coin.getIntProfitability() / minProfitMargin;

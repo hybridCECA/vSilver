@@ -4,6 +4,7 @@ import dataclasses.SXBalance;
 import southxchange.SXApi;
 import utils.Config;
 import utils.Consts;
+import utils.Conversions;
 import utils.Logging;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public class TransferBot extends vService {
             transfer();
             LOGGER.info("Transfer bot done");
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.severe(Conversions.exceptionToString(e));
         }
     }
 

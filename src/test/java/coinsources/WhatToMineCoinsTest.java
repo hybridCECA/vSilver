@@ -1,6 +1,6 @@
-package whattomine;
+package coinsources;
 
-import dataclasses.WhatToMineCoin;
+import dataclasses.Coin;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 
@@ -9,15 +9,15 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CoinsTest {
+class WhatToMineCoinsTest {
 
     @Test
     void testGetCoinList() throws IOException, JSONException {
-        List<WhatToMineCoin> list = Coins.getCoinList();
+        List<Coin> list = WhatToMineCoins.getCoinList();
 
         assertTrue(list.size() > 0);
 
-        for (WhatToMineCoin coin : list) {
+        for (Coin coin : list) {
             assertNotNull(coin.getName());
             assertNotNull(coin.getAlgorithm());
 
@@ -25,9 +25,9 @@ class CoinsTest {
             assertTrue(coin.getUnitProfitability() > 0);
         }
 
-        WhatToMineCoin centerCoin = list.get(list.size() / 2);
+        Coin centerCoin = list.get(list.size() / 2);
 
-        WhatToMineCoin coinCopy = Coins.getCoin(centerCoin.getName());
+        Coin coinCopy = WhatToMineCoins.getCoin(centerCoin.getName());
         assertEquals(coinCopy.getName(), centerCoin.getName());
         assertEquals(coinCopy.getAlgorithm(), centerCoin.getAlgorithm());
     }
