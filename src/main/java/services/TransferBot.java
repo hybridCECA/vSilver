@@ -10,7 +10,7 @@ import utils.Logging;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class TransferBot extends vService {
+public class TransferBot implements vService {
     private static final String REFERENCE_CURRENCY = "BTC";
     private final static Logger LOGGER = Logging.getLogger(TransferBot.class);
 
@@ -35,11 +35,21 @@ public class TransferBot extends vService {
 
         for (SXBalance balance : balances) {
             if (balance.getCurrency().equals(REFERENCE_CURRENCY)) {
-                continue;
-            }
+                // Transfer btc to nicehash if above threshold
+                /*
+                double btcAmount = balance.getAvailable();
+                if (btcAmount > Config.getConfigDouble(Consts.TRANSFER_BOT_BTC_MIN_AMOUNT)) {
+                    LOGGER.info("Transferring " + btcAmount + " BTC to Nicehash");
+                    String address = NHApi.getLightningAddress(btcAmount);
+                    SXApi.withdrawLightning(REFERENCE_CURRENCY, address);
+                }
 
-            LOGGER.info("Selling " + balance.getAvailable() + " " + balance.getCurrency());
-            SXApi.sell(balance.getCurrency(), REFERENCE_CURRENCY, balance.getAvailable());
+                 */
+            } else {
+                // Convert all to btc
+                LOGGER.info("Selling " + balance.getAvailable() + " " + balance.getCurrency());
+                SXApi.sell(balance.getCurrency(), REFERENCE_CURRENCY, balance.getAvailable());
+            }
         }
     }
 }

@@ -1,8 +1,10 @@
 package database;
 
 import dataclasses.AlgoAssociatedData;
+import dataclasses.AllDataRecord;
 import dataclasses.PriceRecord;
 import org.jooq.*;
+import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.jooq.types.DayToSecond;
 import test.generated.tables.records.*;
@@ -10,6 +12,7 @@ import utils.Config;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -155,4 +158,52 @@ public class Connection {
 
         throw new RuntimeException("SQL Error");
     }
+
+    public static List<AllDataRecord> getAllData(int analyzeMinutes) {
+        try (java.sql.Connection conn = getConnection()) {
+            DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
+            Result<Record> result = create.selectFrom(
+                        ALGO_DATA.join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
+                            .join(COIN_DATA).on((ALGO_DATA.ID.eq(COIN_DATA.ALGO_ID)))
+                    )
+                    .where(ALGO_DATA.TIMESTAMP.ge(DSL.currentLocalDateTime().minus((new DayToSecond(0, 0, analyzeMinutes)))))
+                    .orderBy(ALGO_DATA.TIMESTAMP.asc())
+                    .fetch();
+
+            List<AllDataRecord> list = new ArrayList<>();
+            for (Record record : result) {
+                list.add(recordToAllDataRecord(record));
+            }
+
+            return list;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new RuntimeException("SQL Error");
+    }
+
+    private static AllDataRecord recordToAllDataRecord(Record record) {
+        LocalDateTime timestamp = record.get(ALGO_DATA.TIMESTAMP);
+        String algoName = record.get(ALGO_DATA.ALGO_NAME);
+        String marketName = record.get(MARKET_DATA.MARKET_NAME);
+        double fulfillSpeed = record.get(MARKET_DATA.FULFILL_SPEED);
+        double totalSpeed = record.get(MARKET_DATA.TOTAL_SPEED);
+        int fulfillPrice = record.get(MARKET_DATA.FULFILL_PRICE);
+        String coinName = record.get(COIN_DATA.COIN_NAME);
+        int coinRevenue = record.get(COIN_DATA.COIN_REVENUE);
+
+        AllDataRecord allDataRecord = new AllDataRecord();
+        allDataRecord.setTimestamp(timestamp);
+        allDataRecord.setAlgoName(algoName);
+        allDataRecord.setMarketName(marketName);
+        allDataRecord.setFulfillSpeed(fulfillSpeed);
+        allDataRecord.setTotalSpeed(totalSpeed);
+        allDataRecord.setFulfillPrice(fulfillPrice);
+        allDataRecord.setCoinName(coinName);
+        allDataRecord.setCoinRevenue(coinRevenue);
+
+        return allDataRecord;
+    }
 }
+

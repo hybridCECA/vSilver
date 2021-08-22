@@ -1,19 +1,15 @@
 package services;
 
+import coinsources.CoinSources;
+import coinsources.CoinSourcesFactory;
 import database.Connection;
-import dataclasses.AlgoAssociatedData;
-import dataclasses.NicehashAlgorithm;
-import dataclasses.NicehashAlgorithmBuyInfo;
-import dataclasses.Coin;
-import nicehash.NHApi;
-import nicehash.Price;
+import dataclasses.*;
+import nicehash.*;
 import org.json.JSONException;
-import coinsources.ZergPool;
 import test.generated.tables.records.AlgoDataRecord;
 import test.generated.tables.records.CoinDataRecord;
 import test.generated.tables.records.MarketDataRecord;
 import utils.*;
-import coinsources.WhatToMineCoins;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class DataCollector extends vService {
+public class DataCollector implements vService {
     public final static Logger LOGGER = Logging.getLogger(DataCollector.class);
 
     @Override
@@ -33,7 +29,7 @@ public class DataCollector extends vService {
     @Override
     public void run() {
         try {
-            LOGGER.info("Datacollector start");
+            LOGGER.info("DataCollector start");
             collect();
             LOGGER.info("DataCollector done");
         } catch (Exception e) {
@@ -42,15 +38,15 @@ public class DataCollector extends vService {
     }
 
     private static void collect() throws IOException, JSONException {
-        NHApi.invalidateOrderbookCache();
+        NHApi nhApi = NHApiFactory.getInstance();
+        nhApi.invalidateOrderbookCache();
+
+        List<NicehashAlgorithm> algoList = nhApi.getAlgoList();
 
         Map<AlgoDataRecord, AlgoAssociatedData> map = new HashMap<>();
 
-        List<NicehashAlgorithm> algoList = NHApi.getAlgoList();
-
-        List<Coin> coinList = new ArrayList<>();
-        coinList.addAll(WhatToMineCoins.getCoinList());
-        coinList.addAll(ZergPool.getRevenueSources());
+        CoinSources coinSources = CoinSourcesFactory.getInstance();
+        List<Coin> coinList = coinSources.getCoinList();
 
         for (NicehashAlgorithm algo : algoList) {
             String algoName = algo.getAlgorithm();
@@ -68,7 +64,7 @@ public class DataCollector extends vService {
             }
 
             // Calculate fulfill speed
-            NicehashAlgorithmBuyInfo algoBuyInfo = NHApi.getAlgoBuyInfo(algoName);
+            NicehashAlgorithmBuyInfo algoBuyInfo = nhApi.getAlgoBuyInfo(algoName);
             double estimatedPrice = algo.getDoubleProfitability();
             double minAmount = algoBuyInfo.getMinAmount();
             double targetDays = Config.getConfigDouble(Consts.ORDER_TARGET_DAYS);
@@ -77,8 +73,10 @@ public class DataCollector extends vService {
 
             List<MarketDataRecord> marketRecordList = new ArrayList<>();
             for (String market : algoBuyInfo.getMarkets()) {
-                double totalSpeed = Price.getTotalSpeed(algoName, market);
-                int algoPrice = Price.getSweepPrice(fulfillSpeed, algoName, market);
+                List<NicehashOrder> orderbook = nhApi.getOrderbook(algoName, market);
+
+                double totalSpeed = Price.getTotalSpeed(orderbook);
+                int algoPrice = Price.getSweepPrice(orderbook, fulfillSpeed);
 
                 // Market record
                 MarketDataRecord marketRecord = new MarketDataRecord();
@@ -89,10 +87,7 @@ public class DataCollector extends vService {
                 marketRecordList.add(marketRecord);
             }
 
-            AlgoAssociatedData associatedData = new AlgoAssociatedData();
-            associatedData.coinDataRecords = coinRecordList;
-            associatedData.marketDataRecords = marketRecordList;
-
+            AlgoAssociatedData associatedData = new AlgoAssociatedData(marketRecordList, coinRecordList);
             map.put(algoRecord, associatedData);
         }
 

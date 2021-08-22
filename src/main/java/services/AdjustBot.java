@@ -2,6 +2,7 @@ package services;
 
 import database.Connection;
 import nicehash.NHApi;
+import nicehash.NHApiFactory;
 import nicehash.OrderBot;
 import org.json.JSONException;
 import utils.Config;
@@ -12,10 +13,11 @@ import utils.Logging;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class AdjustBot extends vService {
+public class AdjustBot implements vService {
     private static int counter = 0;
     private static final Set<OrderBot> orderBots = new HashSet<>();
     public final static Logger LOGGER = Logging.getLogger(AdjustBot.class);
+    private static final MaxProfit maxProfit = MaxProfitFactory.getInstance();
 
     @Override
     public int getRunPeriodSeconds() {
@@ -42,7 +44,8 @@ public class AdjustBot extends vService {
     private static void synchronize() throws JSONException {
         // Refresh
         LOGGER.info("Refreshing order bots");
-        Set<OrderBot> newActiveOrders = NHApi.getActiveOrders();
+        NHApi nhApi = NHApiFactory.getInstance();
+        Set<OrderBot> newActiveOrders = nhApi.getActiveOrders();
 
         // order_id -> limit
         Map<String, Double> orderLimits = Connection.getOrderLimits();
@@ -61,7 +64,8 @@ public class AdjustBot extends vService {
                 }
 
                 orderBots.add(newOrder);
-                MaxProfit.register(newOrder.getTriplePair());
+
+                maxProfit.register(newOrder.getTriplePair());
             }
         }
 
@@ -71,7 +75,7 @@ public class AdjustBot extends vService {
             if (!newActiveOrders.contains(bot)) {
                 Connection.deleteOrderLimit(bot.getOrderId());
                 toDelete.add(bot);
-                MaxProfit.unregister(bot.getTriplePair());
+                maxProfit.unregister(bot.getTriplePair());
             }
         }
         orderBots.removeAll(toDelete);

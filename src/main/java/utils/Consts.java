@@ -19,4 +19,6 @@ public class Consts {
     public final static String CONNECTION_TIMEOUT_MS = "connection_timeout_ms";
 
     public final static String MAX_PROFIT_PERIOD_SECONDS = "max_profit_period_seconds";
+
+    public final static String TRANSFER_BOT_BTC_MIN_AMOUNT = "transfer_bot_btc_min_amount";
 }

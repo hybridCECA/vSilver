@@ -1,8 +1,12 @@
 package utils;
 
+import coinsources.CoinSources;
+import coinsources.CoinSourcesFactory;
 import dataclasses.Coin;
 import dataclasses.NicehashAlgorithm;
 import nicehash.NHApi;
+import nicehash.NHApiFactory;
+import nicehash.NHApiImpl;
 import org.json.JSONException;
 import coinsources.WhatToMineCoins;
 import coinsources.ZergPool;
@@ -14,11 +18,12 @@ public class CoinAlgoMatcher {
     public static void workshop() throws IOException, JSONException {
         Map<String, List<Coin>> matches = new HashMap<>();
 
-        List<NicehashAlgorithm> algoList = NHApi.getAlgoList();
 
-        List<Coin> coinList = new ArrayList<>();
-        coinList.addAll(WhatToMineCoins.getCoinList());
-        coinList.addAll(ZergPool.getRevenueSources());
+        NHApi nhApi = NHApiFactory.getInstance();
+        List<NicehashAlgorithm> algoList = nhApi.getAlgoList();
+
+        CoinSources coinSources = CoinSourcesFactory.getInstance();
+        List<Coin> coinList = coinSources.getCoinList();
 
         for (NicehashAlgorithm algo : algoList) {
             Iterator<Coin> iterator = coinList.iterator();

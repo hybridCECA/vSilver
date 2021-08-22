@@ -1,6 +1,8 @@
 package dataclasses;
 
 import nicehash.NHApi;
+import nicehash.NHApiFactory;
+import nicehash.NHApiImpl;
 import org.json.JSONException;
 import utils.Conversions;
 
@@ -33,7 +35,8 @@ public class NicehashAlgorithm {
     }
 
     private char getHashPrefix() throws JSONException {
-        NicehashAlgorithmBuyInfo algoBuyInfo = NHApi.getAlgoBuyInfo(algorithm);
+        NHApi nhApi = NHApiFactory.getInstance();
+        NicehashAlgorithmBuyInfo algoBuyInfo = nhApi.getAlgoBuyInfo(algorithm);
         return Conversions.speedTextToHashPrefix(algoBuyInfo.getSpeedText());
     }
 

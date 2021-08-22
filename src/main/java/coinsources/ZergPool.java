@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class ZergPool {
-    public static List<Coin> getRevenueSources() throws IOException, JSONException {
+    protected static List<Coin> getCoinList() throws IOException, JSONException {
         List<Coin> list = new ArrayList<>();
 
         JSONObject json = JSONHttpApi.readJsonFromUrl("http://api.zergpool.com:8080/api/status");
@@ -23,13 +23,13 @@ public class ZergPool {
             String algoName = iterator.next();
             JSONObject algoInfo = json.getJSONObject(algoName);
 
-            addRevenueSource(list, algoName, algoInfo);
+            addCoin(list, algoName, algoInfo);
         }
 
         return list;
     }
 
-    private static void addRevenueSource(List<Coin> list, String algoName, JSONObject algoInfo) throws JSONException {
+    private static void addCoin(List<Coin> list, String algoName, JSONObject algoInfo) throws JSONException {
         Coin source = new Coin();
 
         source.setAlgorithm(algoName);

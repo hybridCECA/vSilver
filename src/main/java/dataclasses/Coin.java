@@ -1,6 +1,8 @@
 package dataclasses;
 
 import nicehash.NHApi;
+import nicehash.NHApiFactory;
+import nicehash.NHApiImpl;
 import org.json.JSONException;
 import test.generated.tables.records.CoinDataRecord;
 import utils.CoinAlgoMatcher;
@@ -51,11 +53,12 @@ public class Coin {
     }
 
     private char getHashPrefix() throws JSONException {
-        List<NicehashAlgorithmBuyInfo> buyInfos = NHApi.getBuyInfo();
+        NHApi nhApi = NHApiFactory.getInstance();
+        List<NicehashAlgorithmBuyInfo> buyInfos = nhApi.getBuyInfo();
         for (NicehashAlgorithmBuyInfo buyInfo : buyInfos) {
             String algoName = buyInfo.getName();
             if (CoinAlgoMatcher.match(algoName, algorithm)) {
-                NicehashAlgorithmBuyInfo algoBuyInfo = NHApi.getAlgoBuyInfo(algoName);
+                NicehashAlgorithmBuyInfo algoBuyInfo = nhApi.getAlgoBuyInfo(algoName);
                 return Conversions.speedTextToHashPrefix(algoBuyInfo.getSpeedText());
             }
         }

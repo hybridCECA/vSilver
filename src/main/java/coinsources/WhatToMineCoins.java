@@ -12,24 +12,13 @@ import java.util.Iterator;
 import java.util.List;
 
 public class WhatToMineCoins {
-    public static List<Coin> getCoinList() throws IOException, JSONException {
+    protected static List<Coin> getCoinList() throws IOException, JSONException {
         List<Coin> coinList = new ArrayList<>();
 
         addCoins(coinList, "https://whattomine.com/coins.json");
         addCoins(coinList, "https://whattomine.com/asic.json");
 
         return coinList;
-    }
-
-    public static Coin getCoin(String coinName) throws IOException, JSONException {
-        List<Coin> coinList = WhatToMineCoins.getCoinList();
-        for (Coin coin : coinList) {
-            if (coin.getName().equals(coinName)) {
-                return coin;
-            }
-        }
-
-        throw new RuntimeException("Coin not found");
     }
 
     private static void addCoins(List<Coin> list, String url) throws IOException, JSONException {
@@ -55,7 +44,7 @@ public class WhatToMineCoins {
         }
     }
 
-    static double getCoinUnitProfitability(JSONObject coinObj) throws JSONException {
+    private static double getCoinUnitProfitability(JSONObject coinObj) throws JSONException {
         if (coinObj.getString("tag").toLowerCase().equals("btc")) {
             coinObj.put("exchange_rate", 1D);
         }
@@ -63,7 +52,7 @@ public class WhatToMineCoins {
         return Conversions.BTC_TO_SATOSHIS / coinObj.getDouble("nethash") * coinObj.getDouble("block_reward") / coinObj.getDouble("block_time") * coinObj.getDouble("exchange_rate") * Conversions.DAYS_TO_SECONDS;
     }
 
-    static double getProfitabilityFromDifficulty(JSONObject coinObj) throws JSONException {
+    private static double getProfitabilityFromDifficulty(JSONObject coinObj) throws JSONException {
         if (coinObj.getString("tag").toLowerCase().equals("btc")) {
             coinObj.put("exchange_rate", 1D);
         }

@@ -50,4 +50,15 @@ public class SXApi {
 
         httpApi.post("placeOrder", request);
     }
+
+    public static void withdrawLightning(String currency, String address) throws Exception {
+        JSONObject request = new JSONObject();
+        request.put("currency", currency);
+        request.put("address", address);
+        request.put("destination", address);
+        request.put("destinationType", 1);
+
+        System.out.println(address);
+        System.out.println(httpApi.post("withdraw", request));
+    }
 }

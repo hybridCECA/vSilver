@@ -1,14 +1,14 @@
 package nicehash;
 
 import database.Connection;
-import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.PriceRecord;
 import dataclasses.TriplePair;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import services.MaxProfit;
+import services.MaxProfitFactory;
+import services.MaxProfitImpl;
 import utils.Config;
 import utils.Consts;
 
@@ -57,14 +57,11 @@ class MaxProfitTest {
                 mockedConnection.when(() -> Connection.getPrices(ALGO, MARKET, ANALYZE_MINUTES)).thenReturn(priceRecords);
                 mockedConnection.when(() -> Connection.getCoinRevenue(COIN)).thenReturn(revenue);
 
-                try (MockedStatic<NHApi> mockedApi = mockStatic(NHApi.class)) {
-                    mockedApi.when(() -> NHApi.getAlgoBuyInfo(ALGO)).thenReturn(new NicehashAlgorithmBuyInfo(ALGO, 0, 0, 0, new JSONArray(), "k", 0));
-
-                    MaxProfit.register(PAIR);
-                    assertFalse(MaxProfit.hasMaxProfit(PAIR));
-                    MaxProfit.updateMaxProfits();
-                    assertEquals(expectedPrice, MaxProfit.getMaxProfit(PAIR));
-                }
+                MaxProfit maxProfit = MaxProfitFactory.getInstance();
+                maxProfit.register(PAIR);
+                assertFalse(maxProfit.hasMaxProfit(PAIR));
+                maxProfit.updateMaxProfits();
+                assertEquals(expectedPrice, maxProfit.getMaxProfit(PAIR));
             }
         }
     }
