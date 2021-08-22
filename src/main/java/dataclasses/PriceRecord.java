@@ -1,6 +1,6 @@
 package dataclasses;
 
-public class PriceRecord {
+public class PriceRecord implements Comparable<PriceRecord> {
     private final int fulfillPrice;
     private final int count;
 
@@ -15,5 +15,10 @@ public class PriceRecord {
 
     public int getCount() {
         return count;
+    }
+
+    @Override
+    public int compareTo(PriceRecord o) {
+        return Integer.compare(this.fulfillPrice, o.fulfillPrice);
     }
 }

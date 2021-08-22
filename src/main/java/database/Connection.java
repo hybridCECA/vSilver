@@ -2,6 +2,7 @@ package database;
 
 import dataclasses.AlgoAssociatedData;
 import dataclasses.AllDataRecord;
+import dataclasses.CoinMarketPair;
 import dataclasses.PriceRecord;
 import org.jooq.*;
 import org.jooq.Record;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static test.generated.Tables.*;
 
@@ -159,23 +161,29 @@ public class Connection {
         throw new RuntimeException("SQL Error");
     }
 
-    public static List<AllDataRecord> getAllData(int analyzeMinutes) {
+    public static Map<CoinMarketPair, List<AllDataRecord>> getAllData(List<CoinMarketPair> list, int analyzeMinutes) {
         try (java.sql.Connection conn = getConnection()) {
             DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
-            Result<Record> result = create.selectFrom(
-                        ALGO_DATA.join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
-                            .join(COIN_DATA).on((ALGO_DATA.ID.eq(COIN_DATA.ALGO_ID)))
-                    )
-                    .where(ALGO_DATA.TIMESTAMP.ge(DSL.currentLocalDateTime().minus((new DayToSecond(0, 0, analyzeMinutes)))))
-                    .orderBy(ALGO_DATA.TIMESTAMP.asc())
-                    .fetch();
 
-            List<AllDataRecord> list = new ArrayList<>();
-            for (Record record : result) {
-                list.add(recordToAllDataRecord(record));
+            Map<CoinMarketPair, List<AllDataRecord>> map = new HashMap<>();
+            for (CoinMarketPair pair : list) {
+                Result<Record> result = create.selectFrom(
+                        ALGO_DATA.join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
+                                .join(COIN_DATA).on((ALGO_DATA.ID.eq(COIN_DATA.ALGO_ID)))
+                ).where(ALGO_DATA.TIMESTAMP.ge(DSL.currentLocalDateTime().minus((new DayToSecond(0, 0, analyzeMinutes)))))
+                        .and(COIN_DATA.COIN_NAME.eq(pair.getCoinName()))
+                        .and(MARKET_DATA.MARKET_NAME.eq((pair.getMarketName())))
+                        .orderBy(ALGO_DATA.TIMESTAMP.asc())
+                        .fetch();
+
+                List<AllDataRecord> allDataRecords = result.stream()
+                        .map(Connection::recordToAllDataRecord)
+                        .collect(Collectors.toList());
+
+                map.put(pair, allDataRecords);
             }
 
-            return list;
+            return map;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -204,6 +212,67 @@ public class Connection {
         allDataRecord.setCoinRevenue(coinRevenue);
 
         return allDataRecord;
+    }
+
+    public static List<CoinMarketPair> getCoinMarketPairs() {
+        try (java.sql.Connection conn = getConnection()) {
+            DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
+            Result<Record2<String, String>> result = create.selectDistinct(COIN_DATA.COIN_NAME, MARKET_DATA.MARKET_NAME).from(
+                    ALGO_DATA.join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
+                            .join(COIN_DATA).on((ALGO_DATA.ID.eq(COIN_DATA.ALGO_ID)))
+            ).fetch();
+
+            List<CoinMarketPair> list = new ArrayList<>();
+            for (Record record : result) {
+                String coinName = record.get(COIN_DATA.COIN_NAME);
+                String marketName = record.get(MARKET_DATA.MARKET_NAME);
+
+                CoinMarketPair pair = new CoinMarketPair(coinName, marketName);
+                list.add(pair);
+            }
+
+            return list;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new RuntimeException("SQL Error");
+    }
+
+    public static Map<CoinMarketPair, Double> getMostRecentTotalSpeedRatios(List<CoinMarketPair> list) {
+        /*
+            Sample query:
+            "select total_speed, fulfill_speed from algo_data join market_data on algo_data.id = market_data.algo_id join coin_data on algo_data.id = coin_data.algo_id " +
+            "where coin_name='BitcoinGold' and market_name='EU' order by timestamp desc limit 1;"
+
+         */
+        try (java.sql.Connection conn = getConnection()) {
+            DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
+
+            Map<CoinMarketPair, Double> map = new HashMap<>();
+            for (CoinMarketPair pair : list) {
+                Record2<Double, Double> result = create.select(MARKET_DATA.TOTAL_SPEED, MARKET_DATA.FULFILL_SPEED).from(
+                        ALGO_DATA.join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
+                                .join(COIN_DATA).on((ALGO_DATA.ID.eq(COIN_DATA.ALGO_ID)))
+                ).where(COIN_DATA.COIN_NAME.eq(pair.getCoinName()))
+                        .and(MARKET_DATA.MARKET_NAME.eq(pair.getMarketName()))
+                        .orderBy(ALGO_DATA.TIMESTAMP.desc())
+                        .limit(1)
+                        .fetchOne();
+
+                double totalSpeed = result.get(MARKET_DATA.TOTAL_SPEED);
+                double fulfillSpeed = result.get(MARKET_DATA.FULFILL_SPEED);
+                double ratio = totalSpeed / fulfillSpeed;
+
+                map.put(pair, ratio);
+            }
+
+            return map;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new RuntimeException("SQL Error");
     }
 }
 

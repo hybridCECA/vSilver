@@ -11,6 +11,14 @@ public class CoinMarketPair {
         this.marketName = marketName;
     }
 
+    public String getCoinName() {
+        return coinName;
+    }
+
+    public String getMarketName() {
+        return marketName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -23,5 +31,13 @@ public class CoinMarketPair {
     @Override
     public int hashCode() {
         return Objects.hash(coinName, marketName);
+    }
+
+    @Override
+    public String toString() {
+        return "CoinMarketPair{" +
+                "coinName='" + coinName + '\'' +
+                ", marketName='" + marketName + '\'' +
+                '}';
     }
 }

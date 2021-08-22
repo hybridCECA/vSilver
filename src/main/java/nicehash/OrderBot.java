@@ -63,27 +63,27 @@ public class OrderBot implements Comparable<OrderBot> {
 
             List<NicehashOrder> orderbook = nhApi.getOrderbook(algoName, marketName);
             int price = Price.getSweepPrice(orderbook, limit, orderId);
-            LOGGER.info("Target price: " + price);
-
-            NicehashAlgorithmBuyInfo algoBuyInfo = nhApi.getAlgoBuyInfo(algoName);
-            char hashPrefix = Conversions.speedTextToHashPrefix(algoBuyInfo.getSpeedText());
+            //LOGGER.info("Target price: " + price);
 
             int profitabilityBound = getProfitabilityBound();
-            LOGGER.info("Profitability bound: " + profitabilityBound);
+            //LOGGER.info("Profitability bound: " + profitabilityBound);
             price = Math.min(price, profitabilityBound);
 
             TriplePair pair = getTriplePair();
             if (!maxProfit.hasMaxProfit(pair)) {
-                LOGGER.info("No max profit yet, waiting...");
+                //LOGGER.info("No max profit yet, waiting...");
                 return;
             }
             int maxProfitabilityBound = maxProfit.getMaxProfit(pair);
-            LOGGER.info("Max profitability bound: " + maxProfitabilityBound);
+            //LOGGER.info("Max profitability bound: " + maxProfitabilityBound);
             price = Math.min(price, maxProfitabilityBound);
 
             int decraseBound = getPriceDecreaseBound();
-            LOGGER.info("Decrease bound: " + decraseBound);
+            //LOGGER.info("Decrease bound: " + decraseBound);
             price = Math.max(price, decraseBound);
+
+            NicehashAlgorithmBuyInfo algoBuyInfo = nhApi.getAlgoBuyInfo(algoName);
+            char hashPrefix = Conversions.speedTextToHashPrefix(algoBuyInfo.getSpeedText());
 
             double submitLimit = limit;
             if (price > profitabilityBound) {

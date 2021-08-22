@@ -1,3 +1,4 @@
+import MarketEvaluation.MarketEvaluationWorkshop;
 import services.*;
 import southxchange.SXApi;
 import utils.Config;
@@ -18,12 +19,15 @@ public class Main {
                 // Adjust bot may interfere in dev env
 
                 services = List.of(
+                        /*
                         new DataCollector(),
                         new TransferBot(),
                         MaxProfitFactory.getInstance()
+
+                         */
                 );
 
-                //MarketEvaluationWorkshop.start();
+                MarketEvaluationWorkshop.start();
             } else {
                 services = List.of(
                         new AdjustBot(),
