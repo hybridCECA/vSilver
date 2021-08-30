@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import utils.Config;
+import utils.SingletonFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,7 +20,7 @@ class CoinSourcesTest {
 
     @Test
     void testGetCoinList() throws IOException, JSONException {
-        CoinSources coinSources = CoinSourcesFactory.getInstance();
+        CoinSources coinSources = SingletonFactory.getInstance(CoinSources.class);
         List<Coin> list = coinSources.getCoinList();
 
         assertTrue(list.size() > 0);
@@ -28,11 +29,8 @@ class CoinSourcesTest {
             assertNotNull(coin.getName());
             assertNotNull(coin.getAlgorithm());
 
-            if (coin.getName().startsWith("zergpool-")) {
-                assertEquals(0, coin.getExchangeRate());
-            } else {
-                assertTrue(coin.getExchangeRate() > 0);
-            }
+            assertTrue(coin.getExchangeRate() >= 0);
+            assertTrue(coin.getUnitProfitability() >= 0);
         }
 
         Coin centerCoin = list.get(list.size() / 2);

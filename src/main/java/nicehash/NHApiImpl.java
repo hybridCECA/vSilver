@@ -7,21 +7,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import services.AdjustBot;
-import utils.Config;
-import utils.Consts;
-import utils.Conversions;
+import utils.*;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.logging.Logger;
 
 public class NHApiImpl implements NHApi {
     private final Map<String, JSONObject> orderbookCache = new HashMap<>();
     private List<NicehashAlgorithmBuyInfo> buyInfoCache;
-    private NHHttpApi api;
+    private final NHHttpApi api;
 
     public NHApiImpl() {
-        String orgId =  Config.getConfigValue(Consts.ORG_ID);
+        String orgId = Config.getConfigValue(Consts.ORG_ID);
         String apiKey = Config.getConfigValue(Consts.API_KEY);
         String apiSecret = Config.getConfigValue(Consts.API_SECRET);
 
@@ -32,7 +29,7 @@ public class NHApiImpl implements NHApi {
         if (orderbookCache.containsKey(algoName)) {
             return orderbookCache.get(algoName);
         } else {
-            String response = api.get("main/api/v2/hashpower/orderBook?algorithm=" + algoName.toUpperCase());
+            String response = api.get("main/api/v2/hashpower/orderBook?algorithm=" + algoName.toUpperCase() + "&size=100000");
             JSONObject json = new JSONObject(response);
 
             orderbookCache.put(algoName, json);
@@ -45,7 +42,7 @@ public class NHApiImpl implements NHApi {
     }
 
     public void updateOrder(String id, int price, String displayMarketFactor, double marketFactor, double limit) throws JSONException {
-        Logger logger = AdjustBot.LOGGER;
+        VLogger logger = Logging.getLogger(AdjustBot.class);
 
         String priceString = Conversions.intPriceToStringPrice(price);
         logger.info("Submit price: " + priceString);
@@ -59,7 +56,7 @@ public class NHApiImpl implements NHApi {
         body.put("displayMarketFactor", displayMarketFactor);
         body.put("marketFactor", marketFactor);
 
-        String response = api.post("main/api/v2/hashpower/order/" + id + "/updatePriceAndLimit", body.toString(),  getTime(), true);
+        String response = api.post("main/api/v2/hashpower/order/" + id + "/updatePriceAndLimit", body.toString(), getTime(), true);
         logger.info("Response: " + response);
     }
 

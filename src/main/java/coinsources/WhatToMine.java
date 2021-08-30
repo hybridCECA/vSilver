@@ -6,12 +6,12 @@ import org.json.JSONObject;
 import utils.Conversions;
 import utils.JSONHttpApi;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class WhatToMineCoins {
+public class WhatToMine {
     protected static List<Coin> getCoinList() throws IOException, JSONException {
         List<Coin> coinList = new ArrayList<>();
 
@@ -35,10 +35,11 @@ public class WhatToMineCoins {
             }
 
             Coin wtmCoin = new Coin();
-            wtmCoin.setName(coinName);
+            wtmCoin.setName("whattomine-" + coinName);
             wtmCoin.setAlgorithm(coinObj.getString("algorithm"));
             wtmCoin.setUnitProfitability(getCoinUnitProfitability(coinObj));
             wtmCoin.setExchangeRate(coinObj.getDouble("exchange_rate"));
+            wtmCoin.setNethash(coinObj.getDouble("nethash"));
 
             list.add(wtmCoin);
         }

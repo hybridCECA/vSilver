@@ -11,7 +11,7 @@ public class CoinSourcesImpl implements CoinSources {
     public List<Coin> getCoinList() throws IOException, JSONException {
         List<Coin> list = new ArrayList<>();
 
-        list.addAll(WhatToMineCoins.getCoinList());
+        list.addAll(WhatToMine.getCoinList());
         list.addAll(ZergPool.getCoinList());
 
         return list;

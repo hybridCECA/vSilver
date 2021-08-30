@@ -3,22 +3,18 @@ package nicehash;
 import dataclasses.NicehashOrder;
 import org.json.JSONException;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class Price {
-    public static int getSweepPrice(List<NicehashOrder> orderbook, double fulfillSpeed, String id) {
+public class PriceToolsImpl implements PriceTools {
+    public int getSweepPrice(List<NicehashOrder> orderbook, double fulfillSpeed, String id) {
         int step = 1;
 
         int maxPrice = orderbook.get(0).getPrice() + step;
 
         for (int price = 0; price <= maxPrice; price += step) {
-            List<NicehashOrder> orderbookCopy = new ArrayList<>();
-            for (NicehashOrder order : orderbook) {
-                orderbookCopy.add(new NicehashOrder(order));
-            }
-
+            List<NicehashOrder> orderbookCopy = copyOrderbook(orderbook);
 
             double speed = getSpeedAtPrice(orderbookCopy, price, id);
 
@@ -30,7 +26,7 @@ public class Price {
         return maxPrice;
     }
 
-    public static double getSpeedAtPrice(List<NicehashOrder> orderbook, int payingPrice, String id) {
+    public double getSpeedAtPrice(List<NicehashOrder> orderbook, int payingPrice, String id) {
         NicehashOrder currentOrder = null;
         for (NicehashOrder order : orderbook) {
             if (order.getId().equals(id)) {
@@ -99,12 +95,14 @@ public class Price {
         return speed;
     }
 
-    public static double getTotalSpeed(List<NicehashOrder> orderbook) throws JSONException {
+    public double getTotalSpeed(List<NicehashOrder> orderbook) {
         return orderbook.stream().mapToDouble(NicehashOrder::getSpeed).sum();
     }
 
     // Overloads without current order id
-    public static int getSweepPrice(List<NicehashOrder> orderbook, double fulfillSpeed) {
+    public int getSweepPrice(List<NicehashOrder> orderbook, double fulfillSpeed) {
+        orderbook = copyOrderbook(orderbook);
+
         if (orderbook.size() == 0) {
             return 1;
         }
@@ -122,5 +120,9 @@ public class Price {
         }
 
         return maxPrice;
+    }
+
+    private List<NicehashOrder> copyOrderbook(List<NicehashOrder> orderbook) {
+        return orderbook.stream().map(NicehashOrder::new).collect(Collectors.toList());
     }
 }

@@ -1,48 +1,48 @@
-package MarketEvaluation;
+package marketevaluation;
 
 import coinsources.CoinSources;
-import database.Connection;
 import dataclasses.Coin;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import nicehash.NHApi;
-import nicehash.NHApiFactory;
 import org.json.JSONException;
 import utils.Config;
 import utils.Consts;
 import utils.Conversions;
+import utils.SingletonFactory;
 
 import java.io.IOException;
 import java.util.List;
 
 public class MockCoinSources implements CoinSources {
-    private double profitability;
-    private String algoName;
+    private int coinRevenue;
+    private final String algoName;
 
     public MockCoinSources(String algoName) {
         this.algoName = algoName;
     }
 
-    public void setProfitability(double profitability) {
-        this.profitability = profitability;
+    public void setCoinRevenue(int coinRevenue) {
+        this.coinRevenue = coinRevenue;
     }
 
     @Override
-    public List<Coin> getCoinList() throws IOException, JSONException {
+    public List<Coin> getCoinList() {
         return null;
     }
 
     @Override
-    public Coin getCoin(String coinName) throws IOException, JSONException {
-        NHApi nhApi = NHApiFactory.getInstance();
+    public Coin getCoin(String coinName) throws JSONException {
+        NHApi nhApi = SingletonFactory.getInstance(NHApi.class);
         NicehashAlgorithmBuyInfo buyInfo = nhApi.getAlgoBuyInfo(algoName);
         char hashPrefix = Conversions.speedTextToHashPrefix(buyInfo.getSpeedText());
-        double factor = Conversions.getMarketFactor(hashPrefix);
+        double unitProfit = Conversions.intPriceToUnitProfit(coinRevenue, hashPrefix);
 
         Coin coin = new Coin();
         coin.setName(coinName);
         coin.setAlgorithm(algoName);
-        double unitProfitabilityFactor = 1.0 / 10000.0 * 100E6 / factor * Config.getConfigDouble(Consts.ORDER_BOT_MIN_PROFIT_MARGIN);
-        coin.setUnitProfitability(profitability * unitProfitabilityFactor);
+
+        double minProfitMargin = Config.getConfigDouble(Consts.ORDER_BOT_MIN_PROFIT_MARGIN);
+        coin.setUnitProfitability(unitProfit * minProfitMargin);
 
         return coin;
     }

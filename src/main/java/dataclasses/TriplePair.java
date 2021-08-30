@@ -2,10 +2,17 @@ package dataclasses;
 
 import java.util.Objects;
 
-public class TriplePair implements Comparable<TriplePair> {
+public class TriplePair {
     private final String algo;
     private final String market;
     private final String coin;
+
+    public TriplePair(AllDataRecord record) {
+        this.algo = record.getAlgoName();
+        this.market = record.getMarketName();
+        this.coin = record.getCoinName();
+    }
+
 
     public TriplePair(String algo, String market, String coin) {
         this.algo = algo;
@@ -41,7 +48,11 @@ public class TriplePair implements Comparable<TriplePair> {
     }
 
     @Override
-    public int compareTo(TriplePair o) {
-        return this.coin.compareTo(o.coin);
+    public String toString() {
+        return "TriplePair{" +
+                "algo='" + algo + '\'' +
+                ", market='" + market + '\'' +
+                ", coin='" + coin + '\'' +
+                '}';
     }
 }

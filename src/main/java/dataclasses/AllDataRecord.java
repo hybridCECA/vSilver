@@ -9,6 +9,9 @@ public class AllDataRecord {
     double fulfillSpeed;
     double totalSpeed;
     int fulfillPrice;
+    String coinName;
+    int coinRevenue;
+    double exchangeRate;
 
     public String getCoinName() {
         return coinName;
@@ -17,9 +20,6 @@ public class AllDataRecord {
     public void setCoinName(String coinName) {
         this.coinName = coinName;
     }
-
-    String coinName;
-    int coinRevenue;
 
     public LocalDateTime getTimestamp() {
         return timestamp;
@@ -84,8 +84,6 @@ public class AllDataRecord {
     public void setExchangeRate(double exchangeRate) {
         this.exchangeRate = exchangeRate;
     }
-
-    double exchangeRate;
 
     @Override
     public String toString() {

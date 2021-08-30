@@ -2,22 +2,19 @@ package services;
 
 import database.Connection;
 import dataclasses.PriceRecord;
-import dataclasses.TriplePair;
-import utils.Config;
-import utils.Consts;
-import utils.Conversions;
-import utils.Logging;
+import nicehash.OrderBot;
+import utils.*;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 public class MaxProfitImpl implements MaxProfit {
     private static final int INVALID_VALUE = -1;
-    private final static Logger LOGGER = Logging.getLogger(MaxProfit.class);
+    private final static VLogger LOGGER = Logging.getLogger(MaxProfit.class);
 
-    private final Map<TriplePair, Integer> maxProfitCache;
+    private final Map<OrderBot, Integer> maxProfitCache;
 
     public MaxProfitImpl() {
         maxProfitCache = new ConcurrentHashMap<>();
@@ -35,35 +32,37 @@ public class MaxProfitImpl implements MaxProfit {
             updateMaxProfits();
             LOGGER.info("Max profit done");
         } catch (Exception e) {
-            LOGGER.severe(Conversions.exceptionToString(e));
+            LOGGER.error(Conversions.exceptionToString(e));
         }
     }
 
     public void updateMaxProfits() {
-        for (TriplePair pair : maxProfitCache.keySet()) {
+        for (OrderBot orderBot : maxProfitCache.keySet()) {
             // Get prices
             int analyzeMinutes = Config.getConfigInt(Consts.MAX_PROFIT_ANALYZE_MINUTES);
-            List<PriceRecord> priceRecords = Connection.getPrices(pair.getAlgo(), pair.getMarket(), analyzeMinutes);
-            int revenue = Connection.getCoinRevenue(pair.getCoin());
+
+            List<PriceRecord> priceRecords = Connection.getPrices(orderBot, analyzeMinutes);
+            int revenue = Connection.getCoinRevenue(orderBot.getCoinName());
 
             int maxProfitPrice = getMaxProfitPrice(priceRecords, revenue);
-            maxProfitCache.put(pair, maxProfitPrice);
+            maxProfitCache.put(orderBot, maxProfitPrice);
 
-            LOGGER.info(pair.getCoin() + " max profit price: " + maxProfitPrice);
+            LOGGER.info(orderBot.getCoinName() + " max profit price: " + maxProfitPrice);
         }
     }
 
-    public int getMaxProfitPrice(List<PriceRecord> list, int revenue) {
+    public int getMaxProfitPrice(Collection<PriceRecord> records, int revenue) {
         // Maximize profit, simple greedy algorithm
+        // List must be sorted increasing
         int hitCount = 0;
         long maxProfit = 0;
         int maxProfitPrice = 0;
-        for (PriceRecord record : list) {
+        for (PriceRecord record : records) {
             int price = record.getFulfillPrice();
 
             hitCount += record.getCount();
 
-            long profit = (long)(revenue - price) * hitCount;
+            long profit = (long) (revenue - price) * hitCount;
             if (profit > maxProfit) {
                 maxProfit = profit;
                 maxProfitPrice = price;
@@ -73,23 +72,23 @@ public class MaxProfitImpl implements MaxProfit {
         return maxProfitPrice;
     }
 
-    public void register(TriplePair pair) {
-        maxProfitCache.put(pair, INVALID_VALUE);
+    public void register(OrderBot bot) {
+        maxProfitCache.put(bot, INVALID_VALUE);
     }
 
-    public void unregister(TriplePair pair) {
-        maxProfitCache.remove(pair);
+    public void unregister(OrderBot bot) {
+        maxProfitCache.remove(bot);
     }
 
-    public int getMaxProfit(TriplePair pair) {
-        if (hasMaxProfit(pair)) {
-            return maxProfitCache.get(pair);
+    public int getMaxProfit(OrderBot bot) {
+        if (hasMaxProfit(bot)) {
+            return maxProfitCache.get(bot);
         } else {
             throw new RuntimeException("Doesn't have max profit!");
         }
     }
 
-    public boolean hasMaxProfit(TriplePair pair) {
-        return maxProfitCache.get(pair) != INVALID_VALUE;
+    public boolean hasMaxProfit(OrderBot bot) {
+        return maxProfitCache.get(bot) != INVALID_VALUE;
     }
 }

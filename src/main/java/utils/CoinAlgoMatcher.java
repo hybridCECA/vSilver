@@ -1,28 +1,36 @@
 package utils;
 
 import coinsources.CoinSources;
-import coinsources.CoinSourcesFactory;
 import dataclasses.Coin;
 import dataclasses.NicehashAlgorithm;
 import nicehash.NHApi;
-import nicehash.NHApiFactory;
-import nicehash.NHApiImpl;
 import org.json.JSONException;
-import coinsources.WhatToMineCoins;
-import coinsources.ZergPool;
 
 import java.io.IOException;
 import java.util.*;
 
 public class CoinAlgoMatcher {
+    public static final Map<String, String> matches = Map.of(
+            "daggerhashimoto", "ethash",
+            "sha256asicboost", "sha-256",
+            "sha256", "sha-256",
+            "randomxmonero", "randomx",
+            "beamv3", "beamhashiii",
+            "decred", "blake (14r)",
+            "grincuckatoo32", "cuckatoo32",
+            "grincuckatoo31", "cuckatoo31",
+            "lyra2rev2", "lyra2v2",
+            "zhash", "equihash144"
+    );
+
     public static void workshop() throws IOException, JSONException {
         Map<String, List<Coin>> matches = new HashMap<>();
 
 
-        NHApi nhApi = NHApiFactory.getInstance();
+        NHApi nhApi = SingletonFactory.getInstance(NHApi.class);
         List<NicehashAlgorithm> algoList = nhApi.getAlgoList();
 
-        CoinSources coinSources = CoinSourcesFactory.getInstance();
+        CoinSources coinSources = SingletonFactory.getInstance(CoinSources.class);
         List<Coin> coinList = coinSources.getCoinList();
 
         for (NicehashAlgorithm algo : algoList) {
@@ -61,19 +69,6 @@ public class CoinAlgoMatcher {
         System.out.println("Match count: " + count);
 
     }
-
-    public static final Map<String, String> matches = Map.of(
-            "daggerhashimoto", "ethash",
-            "sha256asicboost", "sha-256",
-            "sha256", "sha-256",
-            "randomxmonero", "randomx",
-            "beamv3", "beamhashiii",
-            "decred", "blake (14r)",
-            "grincuckatoo32", "cuckatoo32",
-            "grincuckatoo31", "cuckatoo31",
-            "lyra2rev2", "lyra2v2",
-            "zhash", "equihash144"
-    );
 
     public static boolean match(String algo, String coinAlgo) {
         algo = algo.toLowerCase();

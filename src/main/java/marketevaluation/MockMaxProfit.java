@@ -1,10 +1,7 @@
-package MarketEvaluation;
+package marketevaluation;
 
-import dataclasses.PriceRecord;
-import dataclasses.TriplePair;
+import nicehash.OrderBot;
 import services.MaxProfit;
-
-import java.util.List;
 
 public class MockMaxProfit implements MaxProfit {
     int maxProfit;
@@ -19,27 +16,22 @@ public class MockMaxProfit implements MaxProfit {
     }
 
     @Override
-    public int getMaxProfitPrice(List<PriceRecord> list, int revenue) {
-        return 0;
-    }
-
-    @Override
-    public void register(TriplePair pair) {
+    public void register(OrderBot bot) {
 
     }
 
     @Override
-    public void unregister(TriplePair pair) {
+    public void unregister(OrderBot bot) {
 
     }
 
     @Override
-    public int getMaxProfit(TriplePair pair) {
+    public int getMaxProfit(OrderBot bot) {
         return maxProfit;
     }
 
     @Override
-    public boolean hasMaxProfit(TriplePair pair) {
+    public boolean hasMaxProfit(OrderBot bot) {
         return true;
     }
 

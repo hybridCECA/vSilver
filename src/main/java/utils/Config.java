@@ -3,14 +3,14 @@ package utils;
 import database.Connection;
 import org.apache.http.client.config.RequestConfig;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Config {
+    private static final Map<String, String> configCache = new ConcurrentHashMap<>();
     private static String databaseUserName;
     private static String databasePassword;
     private static String databaseUrl;
-    private static final Map<String, String> configCache = new HashMap<>();
 
     public static void setDatabaseConfig(String databaseUserName, String databasePassword, String databaseUrl) {
         Config.databaseUserName = databaseUserName;
@@ -28,6 +28,10 @@ public class Config {
 
     public static String getDatabaseUrl() {
         return databaseUrl;
+    }
+
+    public static void invalidateCache() {
+        configCache.clear();
     }
 
     public static String getConfigValue(String key) {
@@ -54,7 +58,7 @@ public class Config {
     public static RequestConfig getRequestConfig() {
         int connectionTimeoutMs = getConfigInt(Consts.CONNECTION_TIMEOUT_MS);
 
-        return  RequestConfig.custom()
+        return RequestConfig.custom()
                 .setConnectionRequestTimeout(connectionTimeoutMs)
                 .setConnectTimeout(connectionTimeoutMs)
                 .setSocketTimeout(connectionTimeoutMs)

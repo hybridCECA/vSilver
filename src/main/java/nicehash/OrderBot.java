@@ -1,37 +1,30 @@
 package nicehash;
 
 import coinsources.CoinSources;
-import coinsources.CoinSourcesFactory;
+import dataclasses.Coin;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
 import dataclasses.TriplePair;
-import dataclasses.Coin;
 import org.json.JSONException;
 import services.AdjustBot;
 import services.MaxProfit;
-import services.MaxProfitFactory;
-import services.MaxProfitImpl;
-import utils.Config;
-import utils.Consts;
-import utils.Conversions;
+import utils.*;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 public class OrderBot implements Comparable<OrderBot> {
-    private static final Logger LOGGER = AdjustBot.LOGGER;
-
     private final String orderId;
-    private double limit;
     private final String coinName;
     private final String algoName;
     private final String marketName;
-
+    private final VLogger logger;
+    private double limit;
     private NHApi nhApi;
     private CoinSources coinSources;
     private MaxProfit maxProfit;
+    private PriceTools priceTools;
 
     public OrderBot(String orderId, double limit, String coinName, String algoName, String marketName) {
         this.orderId = orderId;
@@ -40,9 +33,11 @@ public class OrderBot implements Comparable<OrderBot> {
         this.algoName = algoName;
         this.marketName = marketName;
 
-        nhApi = NHApiFactory.getInstance();
-        coinSources = CoinSourcesFactory.getInstance();
-        maxProfit = MaxProfitFactory.getInstance();
+        nhApi = SingletonFactory.getInstance(NHApi.class);
+        coinSources = SingletonFactory.getInstance(CoinSources.class);
+        maxProfit = SingletonFactory.getInstance(MaxProfit.class);
+        priceTools = SingletonFactory.getInstance(PriceTools.class);
+        logger = Logging.getLogger(AdjustBot.class);
     }
 
     public void setNhApi(NHApi nhApi) {
@@ -57,29 +52,32 @@ public class OrderBot implements Comparable<OrderBot> {
         this.maxProfit = maxProfit;
     }
 
+    public void setPriceTools(PriceTools priceTools) {
+        this.priceTools = priceTools;
+    }
+
     public void run() {
         try {
             nhApi.invalidateOrderbookCache(algoName);
 
             List<NicehashOrder> orderbook = nhApi.getOrderbook(algoName, marketName);
-            int price = Price.getSweepPrice(orderbook, limit, orderId);
-            //LOGGER.info("Target price: " + price);
+            int price = priceTools.getSweepPrice(orderbook, limit, orderId);
+            logger.info("Target price: " + price);
 
             int profitabilityBound = getProfitabilityBound();
-            //LOGGER.info("Profitability bound: " + profitabilityBound);
+            logger.info("Profitability bound: " + profitabilityBound);
             price = Math.min(price, profitabilityBound);
 
-            TriplePair pair = getTriplePair();
-            if (!maxProfit.hasMaxProfit(pair)) {
-                //LOGGER.info("No max profit yet, waiting...");
+            if (!maxProfit.hasMaxProfit(this)) {
+                logger.info("No max profit yet, waiting...");
                 return;
             }
-            int maxProfitabilityBound = maxProfit.getMaxProfit(pair);
-            //LOGGER.info("Max profitability bound: " + maxProfitabilityBound);
+            int maxProfitabilityBound = maxProfit.getMaxProfit(this);
+            logger.info("Max profitability bound: " + maxProfitabilityBound);
             price = Math.min(price, maxProfitabilityBound);
 
             int decraseBound = getPriceDecreaseBound();
-            //LOGGER.info("Decrease bound: " + decraseBound);
+            logger.info("Decrease bound: " + decraseBound);
             price = Math.max(price, decraseBound);
 
             NicehashAlgorithmBuyInfo algoBuyInfo = nhApi.getAlgoBuyInfo(algoName);
@@ -110,6 +108,10 @@ public class OrderBot implements Comparable<OrderBot> {
         return Math.toIntExact(Math.round(profitabilityBound));
     }
 
+    public String getCoinName() {
+        return coinName;
+    }
+
     public int getPriceDecreaseBound() throws JSONException {
         NicehashOrder order = nhApi.getOrder(orderId, algoName, marketName);
         int downStep = nhApi.getAlgoBuyInfo(algoName).getDownStep();
@@ -127,6 +129,18 @@ public class OrderBot implements Comparable<OrderBot> {
 
     public void setLimit(double limit) {
         this.limit = limit;
+    }
+
+    public String getMarketName() {
+        return marketName;
+    }
+
+    public String getAlgoName() {
+        return algoName;
+    }
+
+    public void disableLogging() {
+        logger.disable();
     }
 
     @Override

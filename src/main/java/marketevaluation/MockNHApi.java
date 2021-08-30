@@ -1,25 +1,25 @@
-package MarketEvaluation;
+package marketevaluation;
 
 import dataclasses.NicehashAlgorithm;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
 import nicehash.NHApi;
-import nicehash.NHApiFactory;
 import nicehash.OrderBot;
 import org.json.JSONException;
+import utils.SingletonFactory;
 
 import java.util.List;
 import java.util.Set;
 
 public class MockNHApi implements NHApi {
-    private int fulfillPrice;
     private int currentPrice;
     private int submitPrice;
-    private NHApi nhApi;
+    private double limit;
+    private final NHApi nhApi;
 
-    public void setFulfillPrice(int fulfillPrice) {
-        this.fulfillPrice = fulfillPrice;
-        nhApi = NHApiFactory.getInstance();
+    public MockNHApi(double limit) {
+        this.limit = limit;
+        nhApi = SingletonFactory.getInstance(NHApi.class);
     }
 
     public void setCurrentPrice(int currentPrice) {
@@ -31,21 +31,18 @@ public class MockNHApi implements NHApi {
     }
 
     @Override
-    public void updateOrder(String id, int price, String displayMarketFactor, double marketFactor, double limit) throws JSONException {
+    public void updateOrder(String id, int price, String displayMarketFactor, double marketFactor, double limit) {
         submitPrice = price;
     }
 
     @Override
-    public NicehashOrder getOrder(String id, String algoName, String market) throws JSONException {
-        return new NicehashOrder(currentPrice, 0, MarketEvaluationWorkshop.ORDER_ID, 0);
+    public NicehashOrder getOrder(String id, String algoName, String market) {
+        return new NicehashOrder(currentPrice, 0, MarketEvaluation.ORDER_ID, limit);
     }
 
     @Override
-    public List<NicehashOrder> getOrderbook(String algoName, String market) throws JSONException {
-        return List.of(
-            new NicehashOrder(fulfillPrice - 1, Double.MAX_VALUE, "other_order_id", Double.MAX_VALUE),
-            new NicehashOrder(1, 0, MarketEvaluationWorkshop.ORDER_ID, 0)
-        );
+    public List<NicehashOrder> getOrderbook(String algoName, String market) {
+        return null;
     }
 
     @Override
@@ -59,12 +56,12 @@ public class MockNHApi implements NHApi {
     }
 
     @Override
-    public Set<OrderBot> getActiveOrders() throws JSONException {
+    public Set<OrderBot> getActiveOrders() {
         return null;
     }
 
     @Override
-    public List<NicehashAlgorithm> getAlgoList() throws JSONException {
+    public List<NicehashAlgorithm> getAlgoList() {
         return null;
     }
 
@@ -84,7 +81,7 @@ public class MockNHApi implements NHApi {
     }
 
     @Override
-    public String getLightningAddress(double amount) throws JSONException {
+    public String getLightningAddress(double amount) {
         return null;
     }
 }

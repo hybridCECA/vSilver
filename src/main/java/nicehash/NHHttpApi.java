@@ -41,7 +41,7 @@ public class NHHttpApi {
     }
 
     private static String hashBySegments(String key, String apiKey, String time, String nonce, String orgId, String method, String encodedPath, String query, String bodyStr) {
-        List<byte []> segments = Arrays.asList(
+        List<byte[]> segments = Arrays.asList(
                 apiKey.getBytes(CHARSET),
                 time.getBytes(CHARSET),
                 nonce.getBytes(CHARSET),
@@ -59,14 +59,14 @@ public class NHHttpApi {
         return hmacSha256BySegments(key, segments);
     }
 
-    private static String hmacSha256BySegments(String key, List<byte []> segments) {
+    private static String hmacSha256BySegments(String key, List<byte[]> segments) {
         try {
             Mac mac = Mac.getInstance(HMAC_SHA256);
             SecretKeySpec secret_key = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), HMAC_SHA256);
             mac.init(secret_key);
             boolean first = true;
 
-            for (byte [] segment: segments) {
+            for (byte[] segment : segments) {
 
                 if (!first) {
                     mac.update((byte) 0);
@@ -92,16 +92,16 @@ public class NHHttpApi {
     public String get(String url, boolean auth, String time) {
         StringBuffer result = new StringBuffer();
         HttpClient client = HttpClientBuilder.create().build();
-        HttpGet request = new HttpGet(this.urlRoot+url);
+        HttpGet request = new HttpGet(this.urlRoot + url);
         request.setConfig(Config.getRequestConfig());
 
         if (auth) {
-            String nonce  = UUID.randomUUID().toString();
+            String nonce = UUID.randomUUID().toString();
             String digest = NHHttpApi.hashBySegments(this.apiSecret, this.apiKey, time, nonce, this.orgId, request.getMethod(), request.getURI().getPath(), request.getURI().getQuery(), null);
 
             request.setHeader("X-Time", time);
             request.setHeader("X-Nonce", nonce);
-            request.setHeader("X-Auth", this.apiKey+":"+digest);
+            request.setHeader("X-Auth", this.apiKey + ":" + digest);
             request.setHeader("X-Organization-Id", this.orgId);
         }
 
@@ -122,7 +122,7 @@ public class NHHttpApi {
     public String post(String url, String payload, String time, boolean requestId) {
         StringBuffer result = new StringBuffer();
         HttpClient client = HttpClientBuilder.create().build();
-        HttpPost request = new HttpPost(this.urlRoot+url);
+        HttpPost request = new HttpPost(this.urlRoot + url);
         request.setConfig(Config.getRequestConfig());
 
         StringEntity entity = null;
@@ -138,12 +138,12 @@ public class NHHttpApi {
         request.setHeader("Accept", "application/json");
         request.setHeader("Content-type", "application/json");
 
-        String nonce  = UUID.randomUUID().toString();
+        String nonce = UUID.randomUUID().toString();
         String digest = NHHttpApi.hashBySegments(this.apiSecret, this.apiKey, time, nonce, this.orgId, request.getMethod(), request.getURI().getPath(), request.getURI().getQuery(), payload);
 
         request.setHeader("X-Time", time);
         request.setHeader("X-Nonce", nonce);
-        request.setHeader("X-Auth", this.apiKey+":"+digest);
+        request.setHeader("X-Auth", this.apiKey + ":" + digest);
         request.setHeader("X-Organization-Id", this.orgId);
         if (requestId)
             request.setHeader("X-Request-Id", UUID.randomUUID().toString()); //must be unique request
@@ -165,15 +165,15 @@ public class NHHttpApi {
     public String delete(String url, String time, boolean requestId) {
         StringBuffer result = new StringBuffer();
         HttpClient client = HttpClientBuilder.create().build();
-        HttpDelete request = new HttpDelete(this.urlRoot+url);
+        HttpDelete request = new HttpDelete(this.urlRoot + url);
         request.setConfig(Config.getRequestConfig());
 
-        String nonce  = UUID.randomUUID().toString();
+        String nonce = UUID.randomUUID().toString();
         String digest = NHHttpApi.hashBySegments(this.apiSecret, this.apiKey, time, nonce, this.orgId, request.getMethod(), request.getURI().getPath(), request.getURI().getQuery(), null);
 
         request.setHeader("X-Time", time);
         request.setHeader("X-Nonce", nonce);
-        request.setHeader("X-Auth", this.apiKey+":"+digest);
+        request.setHeader("X-Auth", this.apiKey + ":" + digest);
         request.setHeader("X-Organization-Id", this.orgId);
         if (requestId)
             request.setHeader("X-Request-Id", UUID.randomUUID().toString()); //must be unique request

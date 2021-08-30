@@ -3,8 +3,8 @@ package dataclasses;
 import java.util.Objects;
 
 public class AlgoMarketPair {
-    String algoName;
-    String marketName;
+    final String algoName;
+    final String marketName;
 
     public AlgoMarketPair(String algoName, String marketName) {
         this.algoName = algoName;

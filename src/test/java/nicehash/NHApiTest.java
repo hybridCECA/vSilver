@@ -6,6 +6,7 @@ import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import utils.Config;
+import utils.SingletonFactory;
 
 import java.util.List;
 
@@ -15,12 +16,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class NHApiTest {
     private static final String ALGO_NAME = "SHA256";
     private static final String MARKET = "EU";
+    private static final int EXPECTED_DOWNSTEP = -1;
+    private static final double EXPECTED_MIN_LIMIT = 0.05;
     private static NHApi nhApi;
 
     @BeforeAll
     static void loadConfig() {
         Config.setDatabaseConfig(System.getenv("database_username"), System.getenv("database_password"), System.getenv("database_url"));
-        nhApi = NHApiFactory.getInstance();
+        nhApi = SingletonFactory.getInstance(NHApi.class);
     }
 
     @Test
@@ -35,9 +38,6 @@ class NHApiTest {
         assertEquals(middleOrder.getId(), order.getId());
         assertEquals(middleOrder.getLimit(), order.getLimit());
     }
-
-    private static final int EXPECTED_DOWNSTEP = -1;
-    private static final double EXPECTED_MIN_LIMIT = 0.05;
 
     @Test
     void testAlgos() throws JSONException {

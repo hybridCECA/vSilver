@@ -1,27 +1,21 @@
 package nicehash;
 
 import coinsources.CoinSources;
-import dataclasses.*;
+import dataclasses.Coin;
+import dataclasses.NicehashAlgorithm;
+import dataclasses.NicehashAlgorithmBuyInfo;
+import dataclasses.NicehashOrder;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.stubbing.Answer;
 import services.MaxProfit;
-import services.MaxProfitImpl;
-import utils.Config;
-import utils.Consts;
-import coinsources.WhatToMineCoins;
+import utils.SingletonFactory;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mockStatic;
 
 class OrderBotTest {
     private static final String ALGO = "test_algo";
@@ -68,12 +62,12 @@ class OrderBotTest {
 
         NHApi testNhApi = new NHApi() {
             @Override
-            public void updateOrder(String id, int price, String displayMarketFactor, double marketFactor, double limit) throws JSONException {
+            public void updateOrder(String id, int price, String displayMarketFactor, double marketFactor, double limit) {
                 assertEquals(price, expectedPrice);
             }
 
             @Override
-            public NicehashOrder getOrder(String id, String algoName, String market) throws JSONException {
+            public NicehashOrder getOrder(String id, String algoName, String market) {
                 for (NicehashOrder order : orderbook) {
                     if (order.getId().equals(id)) {
                         return order;
@@ -84,7 +78,7 @@ class OrderBotTest {
             }
 
             @Override
-            public List<NicehashOrder> getOrderbook(String algoName, String market) throws JSONException {
+            public List<NicehashOrder> getOrderbook(String algoName, String market) {
                 return orderbook;
             }
 
@@ -99,22 +93,22 @@ class OrderBotTest {
             }
 
             @Override
-            public Set<OrderBot> getActiveOrders() throws JSONException {
+            public Set<OrderBot> getActiveOrders() {
                 return null;
             }
 
             @Override
-            public List<NicehashAlgorithm> getAlgoList() throws JSONException {
+            public List<NicehashAlgorithm> getAlgoList() {
                 return null;
             }
 
             @Override
-            public List<NicehashAlgorithmBuyInfo> getBuyInfo() throws JSONException {
+            public List<NicehashAlgorithmBuyInfo> getBuyInfo() {
                 return buyInfoList;
             }
 
             @Override
-            public NicehashAlgorithmBuyInfo getAlgoBuyInfo(String algoName) throws JSONException {
+            public NicehashAlgorithmBuyInfo getAlgoBuyInfo(String algoName) {
                 return buyInfo;
             }
 
@@ -124,19 +118,19 @@ class OrderBotTest {
             }
 
             @Override
-            public String getLightningAddress(double amount) throws JSONException {
+            public String getLightningAddress(double amount) {
                 return null;
             }
         };
 
         CoinSources testCoinSources = new CoinSources() {
             @Override
-            public List<Coin> getCoinList() throws IOException, JSONException {
+            public List<Coin> getCoinList() {
                 return null;
             }
 
             @Override
-            public Coin getCoin(String coinName) throws IOException, JSONException {
+            public Coin getCoin(String coinName) {
                 Coin coin = new Coin();
                 coin.setName(COIN);
                 coin.setAlgorithm(ALGO);
@@ -154,27 +148,22 @@ class OrderBotTest {
             }
 
             @Override
-            public int getMaxProfitPrice(List<PriceRecord> list, int revenue) {
-                return 0;
-            }
-
-            @Override
-            public void register(TriplePair pair) {
+            public void register(OrderBot bot) {
 
             }
 
             @Override
-            public void unregister(TriplePair pair) {
+            public void unregister(OrderBot bot) {
 
             }
 
             @Override
-            public int getMaxProfit(TriplePair pair) {
+            public int getMaxProfit(OrderBot bot) {
                 return maxProfitBound;
             }
 
             @Override
-            public boolean hasMaxProfit(TriplePair pair) {
+            public boolean hasMaxProfit(OrderBot bot) {
                 return true;
             }
 
@@ -189,7 +178,7 @@ class OrderBotTest {
             }
         };
 
-        NHApiFactory.setNhApi(testNhApi);
+        SingletonFactory.setInstance(NHApi.class, testNhApi);
 
         OrderBot orderBot = new OrderBot(ORDER_ID, ORDER_LIMIT, COIN, ALGO, MARKET);
         orderBot.setCoinSources(testCoinSources);

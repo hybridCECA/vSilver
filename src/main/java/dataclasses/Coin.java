@@ -1,12 +1,11 @@
 package dataclasses;
 
 import nicehash.NHApi;
-import nicehash.NHApiFactory;
-import nicehash.NHApiImpl;
 import org.json.JSONException;
 import test.generated.tables.records.CoinDataRecord;
 import utils.CoinAlgoMatcher;
 import utils.Conversions;
+import utils.SingletonFactory;
 
 import java.util.List;
 
@@ -15,6 +14,7 @@ public class Coin {
     private double exchangeRate;
     private double unitProfitability;
     private String algorithm;
+    private double nethash;
 
     public String getName() {
         return name;
@@ -36,6 +36,10 @@ public class Coin {
         return unitProfitability;
     }
 
+    public void setUnitProfitability(double unitProfitability) {
+        this.unitProfitability = unitProfitability;
+    }
+
     public String getAlgorithm() {
         return algorithm;
     }
@@ -44,16 +48,20 @@ public class Coin {
         this.algorithm = algorithm;
     }
 
-    public void setUnitProfitability(double unitProfitability) {
-        this.unitProfitability = unitProfitability;
-    }
-
     public int getIntProfitability() throws JSONException {
         return Conversions.unitProfitToIntPrice(unitProfitability, getHashPrefix());
     }
 
+    public double getNethash() {
+        return nethash;
+    }
+
+    public void setNethash(double nethash) {
+        this.nethash = nethash;
+    }
+
     private char getHashPrefix() throws JSONException {
-        NHApi nhApi = NHApiFactory.getInstance();
+        NHApi nhApi = SingletonFactory.getInstance(NHApi.class);
         List<NicehashAlgorithmBuyInfo> buyInfos = nhApi.getBuyInfo();
         for (NicehashAlgorithmBuyInfo buyInfo : buyInfos) {
             String algoName = buyInfo.getName();
@@ -72,6 +80,7 @@ public class Coin {
         coinRecord.setCoinRevenue(getIntProfitability());
         coinRecord.setCoinName(name);
         coinRecord.setExchangeRate(exchangeRate);
+        coinRecord.setNethash(nethash);
 
         return coinRecord;
     }

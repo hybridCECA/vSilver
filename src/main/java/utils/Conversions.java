@@ -20,9 +20,18 @@ public class Conversions {
         return unitProfitability / BTC_TO_SATOSHIS * getMarketFactor(hashPrefix);
     }
 
+    public static double doublePriceToUnitProfit(double price, char hashPrefix) {
+        return price * BTC_TO_SATOSHIS / getMarketFactor(hashPrefix);
+    }
+
     public static int unitProfitToIntPrice(double unitProfitability, char hashPrefix) {
         double dailyBtc = unitProfitToDoublePrice(unitProfitability, hashPrefix);
         return stringPriceToIntPrice(Double.toString(dailyBtc));
+    }
+
+    public static double intPriceToUnitProfit(int price, char hashPrefix) {
+        double doublePrice = intPriceToDoublePrice(price);
+        return doublePriceToUnitProfit(doublePrice, hashPrefix);
     }
 
     public static String getDisplayMarketFactor(char prefix) {
@@ -45,8 +54,12 @@ public class Conversions {
         return format.format(price);
     }
 
+    public static double intPriceToDoublePrice(int price) {
+        return ((double) price) / STRING_PRICE_TO_INT_PRICE;
+    }
+
     public static String intPriceToStringPrice(int price) {
-        double doublePrice = ((double) price) / STRING_PRICE_TO_INT_PRICE;
+        double doublePrice = intPriceToDoublePrice(price);
         return doublePriceToStringPrice(doublePrice);
     }
 

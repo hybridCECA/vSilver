@@ -15,34 +15,45 @@ public class ZergPool {
     protected static List<Coin> getCoinList() throws IOException, JSONException {
         List<Coin> list = new ArrayList<>();
 
-        JSONObject json = JSONHttpApi.readJsonFromUrl("http://api.zergpool.com:8080/api/status");
+        JSONObject json = JSONHttpApi.readJsonFromUrl("http://api.zergpool.com:8080/api/currencies");
 
         Iterator<String> iterator = json.keys();
 
         while (iterator.hasNext()) {
-            String algoName = iterator.next();
-            JSONObject algoInfo = json.getJSONObject(algoName);
+            String name = iterator.next();
+            JSONObject coinInfo = json.getJSONObject(name);
 
-            addCoin(list, algoName, algoInfo);
+            addCoin(list, coinInfo);
         }
 
         return list;
     }
 
-    private static void addCoin(List<Coin> list, String algoName, JSONObject algoInfo) throws JSONException {
-        Coin source = new Coin();
+    private static void addCoin(List<Coin> list, JSONObject coinInfo) throws JSONException {
+        Coin coin = new Coin();
 
-        source.setAlgorithm(algoName);
-        source.setName("zergpool-" + algoName);
-        source.setUnitProfitability(getUnitProfitability(algoInfo));
-        source.setExchangeRate(0);
+        coin.setAlgorithm(coinInfo.getString("algo"));
+        coin.setName("zergpool-" + coinInfo.getString("symbol"));
+        coin.setUnitProfitability(getUnitProfitability(coinInfo));
+        coin.setExchangeRate(getExchangeRate(coinInfo));
+        coin.setNethash(coinInfo.getDouble("network_hashrate"));
 
-        list.add(source);
+        list.add(coin);
     }
 
-    private static double getUnitProfitability(JSONObject algoInfo) throws JSONException {
-        double factor = algoInfo.getDouble("mbtc_mh_factor") * 1E6;
+    private static double getUnitProfitability(JSONObject coinInfo) throws JSONException {
+        double factor = coinInfo.getDouble("mbtc_mh_factor") * 1E6;
 
-        return algoInfo.getDouble("estimate_current") / factor * Conversions.BTC_TO_SATOSHIS;
+        return coinInfo.getDouble("estimate_current") / factor * Conversions.BTC_TO_SATOSHIS;
+    }
+
+    private static double getExchangeRate(JSONObject coinInfo) throws JSONException {
+        double unitProfit = getUnitProfitability(coinInfo);
+
+        return unitProfit / Conversions.BTC_TO_SATOSHIS
+                / Conversions.DAYS_TO_SECONDS
+                * coinInfo.getDouble("network_hashrate")
+                * coinInfo.getDouble("blocktime")
+                / coinInfo.getDouble("reward");
     }
 }

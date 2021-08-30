@@ -3,8 +3,8 @@ package dataclasses;
 import java.util.Objects;
 
 public class CoinMarketPair {
-    String coinName;
-    String marketName;
+    final String coinName;
+    final String marketName;
 
     public CoinMarketPair(String coinName, String marketName) {
         this.coinName = coinName;

@@ -20,9 +20,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 public class SXHttpApi {
+    private static final String HMAC_SHA512 = "HmacSHA512";
     private final String key;
     private final String secret;
-    private static final String HMAC_SHA512 = "HmacSHA512";
 
     public SXHttpApi(String key, String secret) {
         this.key = key;
@@ -35,7 +35,7 @@ public class SXHttpApi {
 
         String jsonData = request.toString();
 
-        HttpPost httppost = new HttpPost("https://www.southxchange.com/api/" + relativeUri);
+        HttpPost httppost = new HttpPost("https://www.southxchange.com/api/v4/" + relativeUri);
         httppost.setConfig(Config.getRequestConfig());
 
         httppost.addHeader("Hash", getHash(jsonData));

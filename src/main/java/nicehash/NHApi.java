@@ -3,17 +3,10 @@ package nicehash;
 import dataclasses.NicehashAlgorithm;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
-import services.AdjustBot;
-import utils.Config;
-import utils.Consts;
-import utils.Conversions;
 
-import java.time.Instant;
-import java.util.*;
-import java.util.logging.Logger;
+import java.util.List;
+import java.util.Set;
 
 public interface NHApi {
     void updateOrder(String id, int price, String displayMarketFactor, double marketFactor, double limit) throws JSONException;
