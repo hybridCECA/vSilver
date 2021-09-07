@@ -7,12 +7,11 @@ public class TriplePair {
     private final String market;
     private final String coin;
 
-    public TriplePair(AllDataRecord record) {
-        this.algo = record.getAlgoName();
-        this.market = record.getMarketName();
-        this.coin = record.getCoinName();
+    public TriplePair(CryptoInvestment investment) {
+        this.algo = investment.getAlgo();
+        this.market = investment.getMarket();
+        this.coin = investment.getCoin();
     }
-
 
     public TriplePair(String algo, String market, String coin) {
         this.algo = algo;

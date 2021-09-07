@@ -2,6 +2,7 @@ package coinsources;
 
 import dataclasses.Coin;
 import org.json.JSONException;
+import utils.CoinAlgoMatcher;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,10 +18,10 @@ public class CoinSourcesImpl implements CoinSources {
         return list;
     }
 
-    public Coin getCoin(String coinName) throws IOException, JSONException {
+    public Coin getCoin(String coinName, String algoName) throws IOException, JSONException {
         List<Coin> coinList = getCoinList();
         for (Coin coin : coinList) {
-            if (coin.getName().equals(coinName)) {
+            if (coin.getName().equals(coinName) && CoinAlgoMatcher.match(algoName, coin.getAlgorithm())) {
                 return coin;
             }
         }

@@ -2,6 +2,8 @@ package services;
 
 import coinsources.CoinSources;
 import database.Connection;
+import dataclasses.CryptoInvestment;
+import dataclasses.ProfitReport;
 import nicehash.NHApi;
 import nicehash.OrderBot;
 import org.json.JSONException;
@@ -23,16 +25,28 @@ public class BotSynchronizer implements vService {
         CoinSources coinSources = SingletonFactory.getInstance(CoinSources.class);
         Iterator<OrderBot> iterator = newActiveOrders.iterator();
         while (iterator.hasNext()) {
-            String coin = iterator.next().getCoinName();
+            OrderBot bot = iterator.next();
+            String coin = bot.getCoinName();
+            String algo = bot.getAlgoName();
             try {
-                coinSources.getCoin(coin);
+                coinSources.getCoin(coin, algo);
             } catch (Exception e) {
                 iterator.remove();
             }
         }
 
+        // Ensure we have the profit reports ready
+        for (OrderBot bot : newActiveOrders) {
+            CryptoInvestment investment = new CryptoInvestment(bot);
+            if (!MarketEvaluator.hasProfitReport(investment)) {
+                LOGGER.info("Exiting due to a missing profit report for the following investment: ");
+                LOGGER.info(investment.toString());
+                return;
+            }
+        }
+
         // order_id -> limit
-        Map<String, Double> orderLimits = Connection.getOrderLimits();
+        Map<String, Double> orderLimits = Connection.getOrderInitialLimits();
 
         Set<OrderBot> orderBots = AdjustBot.getOrderBots();
 
@@ -46,7 +60,10 @@ public class BotSynchronizer implements vService {
                     double limit = orderLimits.get(orderId);
                     newOrder.setLimit(limit);
                 } else {
-                    Connection.putOrderLimit(orderId, newOrder.getLimit());
+                    CryptoInvestment investment = new CryptoInvestment(newOrder);
+                    ProfitReport report = MarketEvaluator.getProfitReport(investment);
+                    double evaluationscore = report.getEvaluationScore();
+                    Connection.putOrderInitialData(orderId, newOrder.getLimit(), evaluationscore);
                 }
 
                 maxProfit.register(newOrder);
@@ -58,7 +75,7 @@ public class BotSynchronizer implements vService {
         List<OrderBot> toDelete = new ArrayList<>();
         for (OrderBot bot : orderBots) {
             if (!newActiveOrders.contains(bot)) {
-                Connection.deleteOrderLimit(bot.getOrderId());
+                Connection.deleteOrderInitialData(bot.getOrderId());
                 toDelete.add(bot);
                 maxProfit.unregister(bot);
             }
@@ -70,7 +87,7 @@ public class BotSynchronizer implements vService {
             // Matches on id only
             OrderBot searchBot = new OrderBot(id, 0, "", "", "");
             if (!orderBots.contains(searchBot)) {
-                Connection.deleteOrderLimit(id);
+                Connection.deleteOrderInitialData(id);
             }
         }
 

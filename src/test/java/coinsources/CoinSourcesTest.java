@@ -34,8 +34,10 @@ class CoinSourcesTest {
         }
 
         Coin centerCoin = list.get(list.size() / 2);
+        Coin coinCopy = coinSources.getCoin(centerCoin.getName(), centerCoin.getAlgorithm());
 
-        Coin coinCopy = coinSources.getCoin(centerCoin.getName());
+        System.out.println(coinCopy);
+        System.out.println(centerCoin);
         assertEquals(coinCopy.getName(), centerCoin.getName());
         assertEquals(coinCopy.getAlgorithm(), centerCoin.getAlgorithm());
     }

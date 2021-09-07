@@ -23,17 +23,17 @@ public class ZergPool {
             String name = iterator.next();
             JSONObject coinInfo = json.getJSONObject(name);
 
-            addCoin(list, coinInfo);
+            addCoin(list, name, coinInfo);
         }
 
         return list;
     }
 
-    private static void addCoin(List<Coin> list, JSONObject coinInfo) throws JSONException {
+    private static void addCoin(List<Coin> list, String name, JSONObject coinInfo) throws JSONException {
         Coin coin = new Coin();
 
         coin.setAlgorithm(coinInfo.getString("algo"));
-        coin.setName("zergpool-" + coinInfo.getString("symbol"));
+        coin.setName("zergpool-" + name);
         coin.setUnitProfitability(getUnitProfitability(coinInfo));
         coin.setExchangeRate(getExchangeRate(coinInfo));
         coin.setNethash(coinInfo.getDouble("network_hashrate"));

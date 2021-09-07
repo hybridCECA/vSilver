@@ -1,6 +1,12 @@
 package dataclasses;
 
+import database.AllData;
+
 import java.time.LocalDateTime;
+
+import org.jooq.Record;
+import static test.generated.Tables.*;
+import static test.generated.Tables.COIN_DATA;
 
 public class AllDataRecord {
     LocalDateTime timestamp;
@@ -12,6 +18,19 @@ public class AllDataRecord {
     String coinName;
     int coinRevenue;
     double exchangeRate;
+    double nethash;
+
+    public AllDataRecord(Record record) {
+        timestamp = record.get(ALGO_DATA.TIMESTAMP);
+        algoName = record.get(ALGO_DATA.ALGO_NAME);
+        marketName = record.get(MARKET_DATA.MARKET_NAME);
+        fulfillSpeed = record.get(MARKET_PRICE_DATA.FULFILL_SPEED);
+        totalSpeed = record.get(MARKET_DATA.TOTAL_SPEED);
+        fulfillPrice = record.get(MARKET_PRICE_DATA.FULFILL_PRICE);
+        coinName = record.get(COIN_DATA.COIN_NAME);
+        coinRevenue = record.get(COIN_DATA.COIN_REVENUE);
+        nethash = record.get(COIN_DATA.NETHASH);
+    }
 
     public String getCoinName() {
         return coinName;
@@ -83,6 +102,14 @@ public class AllDataRecord {
 
     public void setExchangeRate(double exchangeRate) {
         this.exchangeRate = exchangeRate;
+    }
+
+    public double getNethash() {
+        return nethash;
+    }
+
+    public void setNethash(double nethash) {
+        this.nethash = nethash;
     }
 
     @Override

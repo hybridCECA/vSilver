@@ -100,7 +100,7 @@ public class OrderBot implements Comparable<OrderBot> {
     }
 
     public int getProfitabilityBound() throws IOException, JSONException {
-        Coin coin = coinSources.getCoin(coinName);
+        Coin coin = coinSources.getCoin(coinName, algoName);
         double minProfitMargin = Config.getConfigDouble(Consts.ORDER_BOT_MIN_PROFIT_MARGIN);
 
         double profitabilityBound = coin.getIntProfitability() / minProfitMargin;

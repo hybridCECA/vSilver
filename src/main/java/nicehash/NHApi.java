@@ -3,9 +3,13 @@ package nicehash;
 import dataclasses.NicehashAlgorithm;
 import dataclasses.NicehashAlgorithmBuyInfo;
 import dataclasses.NicehashOrder;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface NHApi {
@@ -30,4 +34,8 @@ public interface NHApi {
     void invalidateBuyInfoCache();
 
     String getLightningAddress(double amount) throws JSONException;
+
+    Map<String, Double> getOrderCompletionRatios() throws JSONException;
+
+    double getAvailableBTC() throws JSONException;
 }

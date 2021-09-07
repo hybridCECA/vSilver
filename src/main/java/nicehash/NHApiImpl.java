@@ -126,6 +126,32 @@ public class NHApiImpl implements NHApi {
         return set;
     }
 
+    public Map<String, Double> getOrderCompletionRatios() throws JSONException {
+        String response = api.get("main/api/v2/hashpower/myOrders?active=true&ts=0&op=GT&limit=1000", true, getTime());
+        JSONObject json = new JSONObject(response);
+        JSONArray orders = json.getJSONArray("list");
+
+        Map<String, Double> map = new HashMap<>();
+        for (int i = 0; i < orders.length(); i++) {
+            JSONObject order = orders.getJSONObject(i);
+
+            String orderId = order.getString("id");
+            double availableAmount = order.getDouble("availableAmount");
+            double payedAmount = order.getDouble("payedAmount");
+            double completionRatio = payedAmount / availableAmount;
+
+            map.put(orderId, completionRatio);
+        }
+
+        return map;
+    }
+
+    public double getAvailableBTC() throws JSONException {
+        String response = api.get("main/api/v2/accounting/account2/BTC", true, getTime());
+        JSONObject json = new JSONObject(response);
+        return json.getDouble("available");
+    }
+
     public List<NicehashAlgorithm> getAlgoList() throws JSONException {
         List<NicehashAlgorithm> algoList = new ArrayList<>();
 

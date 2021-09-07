@@ -25,4 +25,12 @@ public class Consts {
     public final static String CLEAN_DATABASE_DAYS = "clean_database_days";
 
     public final static String MISC_MAINTAINER_PERIOD_SECONDS = "misc_maintainer_period_seconds";
+
+    public final static String ALL_DATA_FETCH_STOP = "all_data_fetch_stop";
+
+    public final static String MARKET_EVALUATION_ANALYZE_MINUTES = "market_evaluation_analyze_minutes";
+
+    public final static String MARKET_EVALUATOR_PERIOD_SECONDS = "market_evaluator_period_seconds";
+
+    public final static int MARKET_EVALUATION_VERSION = 1;
 }

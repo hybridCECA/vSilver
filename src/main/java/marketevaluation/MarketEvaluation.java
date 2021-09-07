@@ -1,87 +1,55 @@
 package marketevaluation;
 
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.MultimapBuilder;
-import database.Connection;
-import dataclasses.AllDataRecord;
-import dataclasses.PriceRecord;
-import dataclasses.ProfitReport;
-import dataclasses.TriplePair;
+import database.AllData;
+import dataclasses.*;
 import nicehash.OrderBot;
+import org.json.JSONException;
 import services.MaxProfitImpl;
-import utils.Config;
-import utils.Consts;
-import utils.Logging;
-import utils.VLogger;
+import utils.*;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class MarketEvaluation {
     public static final String ORDER_ID = "order_id";
+    private static final VLogger LOGGER = Logging.getLogger(MarketEvaluation.class);
 
-    public static void start() {
+    public static Map<CryptoInvestment, ProfitReport> getProfitReports() throws SQLException {
         int maxProfitAnalyzeMinutes = Config.getConfigInt(Consts.MAX_PROFIT_ANALYZE_MINUTES);
-        int analyzeWindow = 1440 + maxProfitAnalyzeMinutes;
-        double minimumMarketRatio = 10;
+        int analyzeMinutes = Config.getConfigInt(Consts.MARKET_EVALUATION_ANALYZE_MINUTES);
+        int dataWindow = maxProfitAnalyzeMinutes + analyzeMinutes;
 
-        VLogger logger = Logging.getLogger(MarketEvaluation.class);
+        LOGGER.info("Getting all data records");
 
-        logger.info("Getting pairs");
-        List<TriplePair> triplePairs = Connection.getCoinMarketPairs();
-        /*
-        logger.info("Getting ratios");
-        Map<TriplePair, Double> ratios = Connection.getMostRecentTotalSpeedRatios(triplePairs);
+        Map<CryptoInvestment, ProfitReport> profitReports = new HashMap<>();
+        do {
+            List<List<AllDataRecord>> allDataRecords = AllData.getNextData(dataWindow);
+            allDataRecords.parallelStream().forEach(list -> {
+                // Skip if no entries
+                if (list.size() == 0) {
+                    return;
+                }
 
-        logger.info("Removing ratios");
-        // Remove coin market pairs below min ratio
-        for (Map.Entry<TriplePair, Double> entry : ratios.entrySet()) {
-            if (entry.getValue() <= minimumMarketRatio) {
-                triplePairs.remove(entry.getKey());
-            }
-        }
+                AllDataRecord record = list.get(0);
+                CryptoInvestment investment = new CryptoInvestment(record);
+                try {
+                    ProfitReport profitReport = getProfitReport(list, maxProfitAnalyzeMinutes);
+                    //profits.put(profit, investment);
+                    profitReports.put(investment, profitReport);
 
-         */
+                    LOGGER.info(record.getCoinName() + " done");
+                } catch (JSONException | IndexOutOfBoundsException e) {
+                    // Skip this one, usually when a high limit doesn't have enough entries
+                }
 
-        /*
-        List<TriplePair> triplePairs = List.of(new TriplePair("ZHASH", "EU", "BitcoinGold"));
+            });
+        } while (AllData.hasData());
 
-         */
-
-        logger.info("Getting all data records");
-
-        //List<List<AllDataRecord>> allDataRecords = Connection.getAllData(triplePairs, analyzeWindow);
-        List<List<AllDataRecord>> allDataRecords = null;
-
-        ListMultimap<ProfitReport, AllDataRecord> profits = MultimapBuilder.treeKeys().arrayListValues().build();
-
-        allDataRecords.parallelStream().forEach(list -> {
-            ProfitReport profit = getAverageTemporalProfit(list, maxProfitAnalyzeMinutes);
-
-            AllDataRecord record = list.get(list.size() - 1);
-            profits.put(profit, record);
-
-            logger.info(record.getCoinName() + " done");
-        });
-
-        for (ProfitReport profit : profits.keySet()) {
-            System.out.println(profit);
-
-            List<AllDataRecord> pairList = profits.get(profit);
-            for (AllDataRecord record : pairList) {
-                double ratio = record.getTotalSpeed() / record.getFulfillSpeed();
-                TriplePair pair = new TriplePair(record);
-                System.out.println(pair + " " + ratio);
-            }
-
-            System.out.println();
-        }
+        return profitReports;
     }
 
-    private static ProfitReport getAverageTemporalProfit(List<AllDataRecord> allDataRecords, int maxProfitAnalyzeMinutes) {
+    private static ProfitReport getProfitReport(List<AllDataRecord> allDataRecords, int maxProfitAnalyzeMinutes) throws JSONException {
         // Traverse to start
         AllDataRecord firstRecord = allDataRecords.get(0);
         LocalDateTime startingTime = firstRecord.getTimestamp();
@@ -100,7 +68,7 @@ public class MarketEvaluation {
         double limit = allDataRecords.get(0).getFulfillSpeed();
 
         MockNHApi nhApi = new MockNHApi(limit);
-        MockCoinSources coinSources = new MockCoinSources(algoName);
+        MockCoinSources coinSources = new MockCoinSources();
         MockMaxProfit maxProfit = new MockMaxProfit();
         MockPriceTools priceTools = new MockPriceTools();
 
@@ -113,8 +81,10 @@ public class MarketEvaluation {
 
         LocalDateTime lastDownAdjustTime = startingTime.minusMinutes(15);
         int currentPrice = 0;
-        double profit = 0;
-        int count = 0;
+        double profitRatioTotal = 0;
+        int numPaid = 0;
+        double adjustedProfit = 0;
+        double minProfitMargin = Config.getConfigDouble(Consts.ORDER_BOT_MIN_PROFIT_MARGIN);
 
         // Main simulation loop
         for (int i = startingIndex; i < allDataRecords.size(); i++) {
@@ -152,21 +122,34 @@ public class MarketEvaluation {
 
             currentPrice = submitPrice;
 
+            NicehashAlgorithmBuyInfo buyInfo = nhApi.getAlgoBuyInfo(record.getAlgoName());
+            String speedText = buyInfo.getSpeedText();
+            char hashPrefix = Conversions.speedTextToHashPrefix(speedText);
+            double factor = Conversions.getMarketFactor(hashPrefix);
+
             if (currentPrice > record.getFulfillPrice()) {
-                profit += (double) (record.getCoinRevenue() - currentPrice) / currentPrice;
-                count++;
+                profitRatioTotal += (double) (record.getCoinRevenue() - currentPrice) / currentPrice;
+                adjustedProfit += record.getCoinRevenue() * record.getNethash() / (record.getNethash() + limit * factor) - currentPrice * minProfitMargin;
+                numPaid++;
             }
         }
 
         AllDataRecord lastRecord = allDataRecords.get(allDataRecords.size() - 1);
 
         int numRuns = allDataRecords.size() - startingIndex;
-        double temporalProfit = profit / numRuns;
-        double totalProfit = profit / count;
-        double percentageActive = (double) count / numRuns;
-        double totalSpeedRatio = lastRecord.getTotalSpeed() / lastRecord.getFulfillSpeed();
+        double temporalProfitRatio = profitRatioTotal / numRuns;
+        double totalProfitRatio = profitRatioTotal / numPaid;
+        double activeRatio = (double) numPaid / numRuns;
+        double marketSpeedRatio = lastRecord.getTotalSpeed() / lastRecord.getFulfillSpeed();
+        double totalProfit = adjustedProfit * limit;
 
-        return new ProfitReport(temporalProfit, totalProfit, percentageActive, totalSpeedRatio);
+        NicehashAlgorithmBuyInfo buyInfo = nhApi.getAlgoBuyInfo(lastRecord.getAlgoName());
+        String speedText = buyInfo.getSpeedText();
+        char hashPrefix = Conversions.speedTextToHashPrefix(speedText);
+        double factor = Conversions.getMarketFactor(hashPrefix);
+        double coinSpeedRatio = lastRecord.getNethash() / lastRecord.getFulfillSpeed() / factor;
+
+        return new ProfitReport(temporalProfitRatio, totalProfitRatio, activeRatio, marketSpeedRatio, coinSpeedRatio, totalProfit);
     }
 
     private static List<PriceRecord> getPriceRecordsList(List<AllDataRecord> allDataRecords, LocalDateTime startTime, LocalDateTime endTime) {

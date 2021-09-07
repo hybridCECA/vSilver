@@ -13,6 +13,7 @@ import utils.SingletonFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -121,6 +122,16 @@ class OrderBotTest {
             public String getLightningAddress(double amount) {
                 return null;
             }
+
+            @Override
+            public Map<String, Double> getOrderCompletionRatios() throws JSONException {
+                return null;
+            }
+
+            @Override
+            public double getAvailableBTC() throws JSONException {
+                return 0;
+            }
         };
 
         CoinSources testCoinSources = new CoinSources() {
@@ -130,7 +141,7 @@ class OrderBotTest {
             }
 
             @Override
-            public Coin getCoin(String coinName) {
+            public Coin getCoin(String coinName, String algoName) {
                 Coin coin = new Coin();
                 coin.setName(COIN);
                 coin.setAlgorithm(ALGO);

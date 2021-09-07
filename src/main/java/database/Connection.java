@@ -1,14 +1,13 @@
 package database;
 
 import com.google.common.collect.Multimap;
-import dataclasses.AlgoAssociatedData;
-import dataclasses.PriceRecord;
-import dataclasses.TriplePair;
+import dataclasses.*;
 import nicehash.OrderBot;
 import org.jooq.Record;
 import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.types.DayToSecond;
+import test.generated.tables.OrderInitialData;
 import test.generated.tables.records.*;
 import utils.Config;
 import utils.Consts;
@@ -17,11 +16,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static test.generated.Tables.*;
 
 public class Connection {
-    private static java.sql.Connection getConnection() throws SQLException {
+    static java.sql.Connection getConnection() throws SQLException {
         String userName = Config.getDatabaseUserName();
         String password = Config.getDatabasePassword();
         String url = "jdbc:postgresql://" + Config.getDatabaseUrl();
@@ -102,6 +102,27 @@ public class Connection {
         throw new RuntimeException("Coin not found");
     }
 
+    private static double getNearestFulfillPrice(DSLContext create, TriplePair pair, double limit) {
+        // Get nearest fulfillSpeed
+        final int DIFFERENCE = 1;
+        Record2<Double, Double> speedResult = create.select(
+                        MARKET_PRICE_DATA.FULFILL_SPEED,
+                        DSL.abs(MARKET_PRICE_DATA.FULFILL_SPEED.minus(limit)).as(DSL.inline(DIFFERENCE))
+                )
+                .from(
+                        ALGO_DATA
+                                .join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
+                                .join(MARKET_PRICE_DATA).on(MARKET_DATA.ID.eq(MARKET_PRICE_DATA.MARKET_ID))
+                )
+                .where(ALGO_DATA.ALGO_NAME.eq(pair.getAlgo()))
+                .and(MARKET_DATA.MARKET_NAME.eq(pair.getMarket()))
+                .orderBy(DSL.inline(DIFFERENCE).asc())
+                .limit(1)
+                .fetchOne();
+
+        return speedResult.get(MARKET_PRICE_DATA.FULFILL_SPEED);
+    }
+
     public static List<PriceRecord> getPrices(OrderBot bot, int analyzeMinutes) {
         String algoName = bot.getAlgoName();
         double fulfillSpeed = bot.getLimit();
@@ -110,24 +131,7 @@ public class Connection {
         try (java.sql.Connection conn = getConnection()) {
             DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
 
-            // Get nearest fulfillSpeed
-            final String DIFFERENCE = "difference";
-            Record2<Double, Double> speedResult = create.select(
-                    MARKET_PRICE_DATA.FULFILL_SPEED,
-                    DSL.abs(MARKET_PRICE_DATA.FULFILL_SPEED.minus(fulfillSpeed)).as(DSL.inline(DIFFERENCE))
-            )
-                    .from(
-                            ALGO_DATA
-                                    .join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
-                                    .join(MARKET_PRICE_DATA).on(MARKET_DATA.ID.eq(MARKET_PRICE_DATA.MARKET_ID))
-                    )
-                    .where(ALGO_DATA.ALGO_NAME.eq(algoName))
-                    .and(MARKET_DATA.MARKET_NAME.eq(marketName))
-                    .orderBy(DSL.inline(DIFFERENCE).asc())
-                    .limit(1)
-                    .fetchOne();
-
-            double nearestFulfillSpeed = speedResult.get(MARKET_PRICE_DATA.FULFILL_PRICE);
+            double nearestFulfillSpeed = getNearestFulfillPrice(create, bot.getTriplePair(), fulfillSpeed);
 
             Field<LocalDateTime> analyzeStart = DSL.currentLocalDateTime().minus((new DayToSecond(0, 0, analyzeMinutes)));
             Result<Record2<Integer, Integer>> result = create.select(MARKET_PRICE_DATA.FULFILL_PRICE, DSL.count(MARKET_PRICE_DATA.FULFILL_PRICE))
@@ -158,40 +162,43 @@ public class Connection {
         throw new RuntimeException("SQL Error");
     }
 
-    public static void putOrderLimit(String orderId, double orderLimit) {
+    public static void putOrderInitialData(String orderId, double orderLimit, double evaluationScore) {
         try (java.sql.Connection conn = getConnection()) {
             DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
 
-            OrderLimitsRecord record = create.newRecord(ORDER_LIMITS);
+            OrderInitialDataRecord record = create.newRecord(ORDER_INITIAL_DATA);
             record.setOrderId(orderId);
             record.setOrderLimit(orderLimit);
+            record.setEvaluationScore(evaluationScore);
+            record.setMarketEvaluationVersion(Consts.MARKET_EVALUATION_VERSION);
             record.store();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public static void deleteOrderLimit(String orderId) {
+    public static void deleteOrderInitialData(String orderId) {
         try (java.sql.Connection conn = getConnection()) {
             DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
 
-            OrderLimitsRecord record = create.fetchOne(ORDER_LIMITS, ORDER_LIMITS.ORDER_ID.eq(orderId));
-            if (record != null) {
-                record.delete();
-            }
+            create.deleteFrom(ORDER_INITIAL_DATA)
+                    .where(ORDER_INITIAL_DATA.ORDER_ID.eq(orderId))
+                    .execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public static Map<String, Double> getOrderLimits() {
+    public static Map<String, Double> getOrderInitialLimits() {
         try (java.sql.Connection conn = getConnection()) {
             DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
 
-            Result<OrderLimitsRecord> result = create.fetch(ORDER_LIMITS);
+            Result<OrderInitialDataRecord> result = create.selectFrom(ORDER_INITIAL_DATA)
+                    .where(ORDER_INITIAL_DATA.MARKET_EVALUATION_VERSION.eq(Consts.MARKET_EVALUATION_VERSION))
+                    .fetch();
 
             Map<String, Double> map = new HashMap<>();
-            for (OrderLimitsRecord record : result) {
+            for (OrderInitialDataRecord record : result) {
                 map.put(record.getOrderId(), record.getOrderLimit());
             }
 
@@ -202,28 +209,53 @@ public class Connection {
 
         throw new RuntimeException("SQL Error");
     }
-/*
-    public static List<List<AllDataRecord>> getAllData(List<TriplePair> triplePairs, int analyzeMinutes) {
+
+    public static Map<String, Double> getOrderInitialEvaluationScores() {
+        try (java.sql.Connection conn = getConnection()) {
+            DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
+
+            Result<OrderInitialDataRecord> result = create.selectFrom(ORDER_INITIAL_DATA)
+                    .where(ORDER_INITIAL_DATA.MARKET_EVALUATION_VERSION.eq(Consts.MARKET_EVALUATION_VERSION))
+                    .fetch();
+
+            Map<String, Double> map = new HashMap<>();
+            for (OrderInitialDataRecord record : result) {
+                map.put(record.getOrderId(), record.getEvaluationScore());
+            }
+
+            return map;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new RuntimeException("SQL Error");
+    }
+
+    public static List<List<AllDataRecord>> getAllData(List<CryptoInvestment> investments, int analyzeMinutes) {
         try (java.sql.Connection conn = getConnection()) {
             DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
 
             List<List<AllDataRecord>> list = new ArrayList<>();
-            for (TriplePair pair : triplePairs) {
+
+            for (CryptoInvestment investment : investments) {
                 Result<Record> result = create.selectFrom(
-                        ALGO_DATA.join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
-                                .join(COIN_DATA).on((ALGO_DATA.ID.eq(COIN_DATA.ALGO_ID)))
-                ).where(ALGO_DATA.TIMESTAMP.ge(DSL.currentLocalDateTime().minus((new DayToSecond(0, 0, analyzeMinutes)))))
-                        .and(COIN_DATA.COIN_NAME.eq(pair.getCoin()))
-                        .and(MARKET_DATA.MARKET_NAME.eq(pair.getMarket()))
-                        .and(ALGO_DATA.ALGO_NAME.eq(pair.getAlgo()))
+                                ALGO_DATA.join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
+                                        .join(COIN_DATA).on((ALGO_DATA.ID.eq(COIN_DATA.ALGO_ID)))
+                                        .join(MARKET_PRICE_DATA).on(MARKET_DATA.ID.eq(MARKET_PRICE_DATA.MARKET_ID))
+                        ).where(ALGO_DATA.TIMESTAMP.ge(DSL.currentLocalDateTime().minus((new DayToSecond(0, 0, analyzeMinutes)))))
+                        .and(COIN_DATA.COIN_NAME.eq(investment.getCoin()))
+                        .and(MARKET_DATA.MARKET_NAME.eq(investment.getMarket()))
+                        .and(ALGO_DATA.ALGO_NAME.eq(investment.getAlgo()))
+                        .and(MARKET_PRICE_DATA.FULFILL_SPEED.eq(investment.getFulfillSpeed()))
                         .orderBy(ALGO_DATA.TIMESTAMP.asc())
                         .fetch();
 
                 List<AllDataRecord> allDataRecords = result.stream()
-                        .map(Connection::recordToAllDataRecord)
+                        .map(AllDataRecord::new)
                         .collect(Collectors.toList());
 
                 list.add(allDataRecords);
+
             }
 
             return list;
@@ -234,50 +266,27 @@ public class Connection {
         throw new RuntimeException("SQL Error");
     }
 
-    private static AllDataRecord recordToAllDataRecord(Record record) {
-        LocalDateTime timestamp = record.get(ALGO_DATA.TIMESTAMP);
-        String algoName = record.get(ALGO_DATA.ALGO_NAME);
-        String marketName = record.get(MARKET_DATA.MARKET_NAME);
-        double fulfillSpeed = record.get(MARKET_DATA.FULFILL_SPEED);
-        double totalSpeed = record.get(MARKET_DATA.TOTAL_SPEED);
-        int fulfillPrice = record.get(MARKET_DATA.FULFILL_PRICE);
-        String coinName = record.get(COIN_DATA.COIN_NAME);
-        int coinRevenue = record.get(COIN_DATA.COIN_REVENUE);
-
-        AllDataRecord allDataRecord = new AllDataRecord();
-        allDataRecord.setTimestamp(timestamp);
-        allDataRecord.setAlgoName(algoName);
-        allDataRecord.setMarketName(marketName);
-        allDataRecord.setFulfillSpeed(fulfillSpeed);
-        allDataRecord.setTotalSpeed(totalSpeed);
-        allDataRecord.setFulfillPrice(fulfillPrice);
-        allDataRecord.setCoinName(coinName);
-        allDataRecord.setCoinRevenue(coinRevenue);
-
-        return allDataRecord;
-    }
-
- */
-
-    public static List<TriplePair> getCoinMarketPairs() {
+    public static List<CryptoInvestment> getInvestmentsList() {
         try (java.sql.Connection conn = getConnection()) {
             DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
-            Result<Record3<String, String, String>> result = create.selectDistinct(COIN_DATA.COIN_NAME, MARKET_DATA.MARKET_NAME, ALGO_DATA.ALGO_NAME).from(
+            Result<Record4<String, String, String, Double>> result = create.selectDistinct(COIN_DATA.COIN_NAME, MARKET_DATA.MARKET_NAME, ALGO_DATA.ALGO_NAME, MARKET_PRICE_DATA.FULFILL_SPEED).from(
                     ALGO_DATA.join(MARKET_DATA).on(ALGO_DATA.ID.eq(MARKET_DATA.ALGO_ID))
                             .join(COIN_DATA).on((ALGO_DATA.ID.eq(COIN_DATA.ALGO_ID)))
+                            .join(MARKET_PRICE_DATA).on(MARKET_DATA.ID.eq(MARKET_PRICE_DATA.MARKET_ID))
             ).fetch();
 
-            List<TriplePair> list = new ArrayList<>();
+            List<CryptoInvestment> investments = new ArrayList<>();
             for (Record record : result) {
                 String coinName = record.get(COIN_DATA.COIN_NAME);
                 String marketName = record.get(MARKET_DATA.MARKET_NAME);
                 String algoName = record.get(ALGO_DATA.ALGO_NAME);
+                double fulfillSpeed = record.get(MARKET_PRICE_DATA.FULFILL_SPEED);
 
-                TriplePair pair = new TriplePair(algoName, marketName, coinName);
-                list.add(pair);
+                CryptoInvestment investment = new CryptoInvestment(algoName, marketName, coinName, fulfillSpeed);
+                investments.add(investment);
             }
 
-            return list;
+            return investments;
         } catch (SQLException e) {
             e.printStackTrace();
         }

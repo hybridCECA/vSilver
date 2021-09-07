@@ -9,6 +9,7 @@ import org.json.JSONException;
 import utils.SingletonFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class MockNHApi implements NHApi {
@@ -83,5 +84,15 @@ public class MockNHApi implements NHApi {
     @Override
     public String getLightningAddress(double amount) {
         return null;
+    }
+
+    @Override
+    public Map<String, Double> getOrderCompletionRatios() throws JSONException {
+        return null;
+    }
+
+    @Override
+    public double getAvailableBTC() throws JSONException {
+        return 0;
     }
 }

@@ -1,39 +1,17 @@
-import dataclasses.NicehashAlgorithm;
-import dataclasses.NicehashAlgorithmBuyInfo;
-import dataclasses.NicehashOrder;
+import marketevaluation.MarketEvaluation;
 import nicehash.NHApi;
-import org.json.JSONException;
+import nicehash.NHApiImpl;
 import services.*;
 import southxchange.SXApi;
 import utils.Config;
 import utils.SingletonFactory;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
-
-    private static int getNumOrders() throws JSONException {
-        NHApi nhApi = SingletonFactory.getInstance(NHApi.class);
-        List<NicehashAlgorithm> algoList = nhApi.getAlgoList();
-
-        int count = 0;
-
-        for (NicehashAlgorithm algo : algoList) {
-            NicehashAlgorithmBuyInfo buyInfo = nhApi.getAlgoBuyInfo(algo.getAlgorithm());
-            for (String market : buyInfo.getMarkets()) {
-                List<NicehashOrder> orderbook = nhApi.getOrderbook(algo.getAlgorithm(), market);
-
-                count += orderbook.size();
-            }
-        }
-
-        return count;
-    }
-
     public static void main(String[] args) {
         if (args.length == 3) {
             Config.setDatabaseConfig(args[0], args[1], args[2]);
@@ -44,17 +22,21 @@ public class Main {
                 // Adjust bot may interfere in dev env
 
                 services = List.of(
-                        /*
-                        new AdjustBot(),
-                        new TransferBot(),
-                        MaxProfitFactory.getInstance(),
-                        */
+                        //new AdjustBot(),
+                        new BotSynchronizer(),
                         new DataCollector(),
-                        new MiscMaintainer()
+                        //new TransferBot(),
+                        new MiscMaintainer(),
+                        new MarketEvaluator(),
+                        SingletonFactory.getInstance(MaxProfit.class)
                 );
 
-                //MarketEvaluation.start();
-                //CoinAlgoMatcher.workshop();
+                try {
+                    //MarketEvaluation.getProfitReports();
+                    //CoinAlgoMatcher.workshop();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else {
                 services = List.of(
                         new AdjustBot(),
@@ -62,6 +44,7 @@ public class Main {
                         new DataCollector(),
                         new TransferBot(),
                         new MiscMaintainer(),
+                        new MarketEvaluator(),
                         SingletonFactory.getInstance(MaxProfit.class)
                 );
             }

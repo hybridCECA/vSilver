@@ -15,11 +15,6 @@ import java.util.List;
 
 public class MockCoinSources implements CoinSources {
     private int coinRevenue;
-    private final String algoName;
-
-    public MockCoinSources(String algoName) {
-        this.algoName = algoName;
-    }
 
     public void setCoinRevenue(int coinRevenue) {
         this.coinRevenue = coinRevenue;
@@ -31,7 +26,7 @@ public class MockCoinSources implements CoinSources {
     }
 
     @Override
-    public Coin getCoin(String coinName) throws JSONException {
+    public Coin getCoin(String coinName, String algoName) throws JSONException {
         NHApi nhApi = SingletonFactory.getInstance(NHApi.class);
         NicehashAlgorithmBuyInfo buyInfo = nhApi.getAlgoBuyInfo(algoName);
         char hashPrefix = Conversions.speedTextToHashPrefix(buyInfo.getSpeedText());

@@ -30,7 +30,10 @@ class ConfigTest {
                 Consts.TRANSFER_BOT_BTC_MIN_AMOUNT,
                 Consts.BOT_SYNCHRONIZER_PERIOD_SECONDS,
                 Consts.CLEAN_DATABASE_DAYS,
-                Consts.MISC_MAINTAINER_PERIOD_SECONDS
+                Consts.MISC_MAINTAINER_PERIOD_SECONDS,
+                Consts.ALL_DATA_FETCH_STOP,
+                Consts.MARKET_EVALUATION_ANALYZE_MINUTES,
+                Consts.MARKET_EVALUATOR_PERIOD_SECONDS
         );
 
         for (String config : configConsts) {

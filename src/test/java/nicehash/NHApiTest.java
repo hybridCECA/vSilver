@@ -9,6 +9,7 @@ import utils.Config;
 import utils.SingletonFactory;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -49,5 +50,21 @@ class NHApiTest {
 
         double minLimit = nhApi.getAlgoBuyInfo(ALGO_NAME).getMinLimit();
         assertEquals(minLimit, EXPECTED_MIN_LIMIT);
+    }
+
+    @Test
+    void testAvailableBTC() throws JSONException {
+        double availableBTC = nhApi.getAvailableBTC();
+        assertTrue(availableBTC > 0);
+    }
+
+    @Test
+    void testCompletionRatio() throws JSONException {
+        Map<String, Double> completionRatios = nhApi.getOrderCompletionRatios();
+        for (Map.Entry<String, Double> entry : completionRatios.entrySet()) {
+            double ratio = entry.getValue();
+            assertTrue(ratio > 0);
+            assertTrue(ratio < 1);
+        }
     }
 }

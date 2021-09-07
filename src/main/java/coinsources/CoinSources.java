@@ -9,5 +9,5 @@ import java.util.List;
 public interface CoinSources {
     List<Coin> getCoinList() throws IOException, JSONException;
 
-    Coin getCoin(String coinName) throws IOException, JSONException;
+    Coin getCoin(String coinName, String algoName) throws IOException, JSONException;
 }
