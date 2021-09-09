@@ -7,7 +7,6 @@ import org.jooq.Record;
 import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.types.DayToSecond;
-import test.generated.tables.OrderInitialData;
 import test.generated.tables.records.*;
 import utils.Config;
 import utils.Consts;
@@ -210,25 +209,31 @@ public class Connection {
         throw new RuntimeException("SQL Error");
     }
 
-    public static Map<String, Double> getOrderInitialEvaluationScores() {
+    public static double getOrderInitialEvaluationScore(String orderId) {
         try (java.sql.Connection conn = getConnection()) {
             DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
 
-            Result<OrderInitialDataRecord> result = create.selectFrom(ORDER_INITIAL_DATA)
+            Record1<Double> result = create.select(ORDER_INITIAL_DATA.EVALUATION_SCORE).from(ORDER_INITIAL_DATA)
                     .where(ORDER_INITIAL_DATA.MARKET_EVALUATION_VERSION.eq(Consts.MARKET_EVALUATION_VERSION))
-                    .fetch();
+                    .and(ORDER_INITIAL_DATA.ORDER_ID.eq(orderId))
+                    .fetchOne();
 
-            Map<String, Double> map = new HashMap<>();
-            for (OrderInitialDataRecord record : result) {
-                map.put(record.getOrderId(), record.getEvaluationScore());
-            }
 
-            return map;
+            return result.value1();
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
         throw new RuntimeException("SQL Error");
+    }
+
+    public static LocalDateTime getRandomLocalDateTime() {
+        try (java.sql.Connection conn = getConnection()) {
+            DSLContext create = DSL.using(conn, SQLDialect.POSTGRES);
+            return create.select(ALGO_DATA.TIMESTAMP).from(ALGO_DATA).limit(1).fetchOne().value1();
+        } catch (SQLException e) {
+            throw new RuntimeException("SQL Error");
+        }
     }
 
     public static List<List<AllDataRecord>> getAllData(List<CryptoInvestment> investments, int analyzeMinutes) {

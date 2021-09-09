@@ -17,7 +17,7 @@ public class ZergPool {
 
         JSONObject json = JSONHttpApi.readJsonFromUrl("http://api.zergpool.com:8080/api/currencies");
 
-        Iterator<String> iterator = json.keys();
+        @SuppressWarnings("unchecked") Iterator<String> iterator = json.keys();
 
         while (iterator.hasNext()) {
             String name = iterator.next();

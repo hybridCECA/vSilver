@@ -23,11 +23,16 @@ public class SingletonFactory {
 
     private static final Map<Class<?>, Object> instanceMap = new HashMap<>();
 
+    public static void clearInstances() {
+        instanceMap.clear();
+    }
+
     public static <T> void setInstance(Class<T> requestedInterface, T instance) {
         instanceMap.put(requestedInterface, instance);
     }
 
     // Singleton
+    @SuppressWarnings("unchecked")
     public static <T> T getInstance(Class<T> requestedInterface) {
         try {
             if (instanceMap.containsKey(requestedInterface)) {

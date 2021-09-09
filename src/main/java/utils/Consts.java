@@ -1,6 +1,7 @@
 package utils;
 
 public class Consts {
+    // Config Consts
     public final static String ORG_ID = "org_id";
     public final static String API_KEY = "api_key";
     public final static String API_SECRET = "api_secret";
@@ -29,8 +30,16 @@ public class Consts {
     public final static String ALL_DATA_FETCH_STOP = "all_data_fetch_stop";
 
     public final static String MARKET_EVALUATION_ANALYZE_MINUTES = "market_evaluation_analyze_minutes";
+    public final static String MARKET_EVALUATION_ENTRIES_TOLERANCE = "market_evaluation_entries_tolerance";
 
     public final static String MARKET_EVALUATOR_PERIOD_SECONDS = "market_evaluator_period_seconds";
 
+    public final static String REFILLER_PERIOD_SECONDS = "refiller_period_seconds";
+    public final static String REFILLER_MAX_REMAINING_AMOUNT = "refiller_max_remaining_amount";
+    public final static String REFILLER_REFILL_AMOUNT = "refiller_refill_amount";
+    public final static String REFILLER_MIN_EVALUATION_RATIO = "refiller_min_evaluation_ratio";
+
+    // Non config
     public final static int MARKET_EVALUATION_VERSION = 1;
 }
+

@@ -96,7 +96,7 @@ public class DataCollector implements vService {
             collect();
             LOGGER.info("DataCollector done");
         } catch (Exception e) {
-            LOGGER.error(Conversions.exceptionToString(e));
+            LOGGER.error(e);
         }
     }
 }

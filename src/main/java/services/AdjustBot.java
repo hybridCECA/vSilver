@@ -32,7 +32,7 @@ public class AdjustBot implements vService {
         try {
             adjust();
         } catch (Exception e) {
-            LOGGER.error(Conversions.exceptionToString(e));
+            LOGGER.error(e);
         }
     }
 }

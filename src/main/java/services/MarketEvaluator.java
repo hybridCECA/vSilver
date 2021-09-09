@@ -26,7 +26,7 @@ public class MarketEvaluator implements vService {
             profitReportMap = MarketEvaluation.getProfitReports();
             LOGGER.info("Done refreshing profit reports");
         } catch (SQLException e) {
-            LOGGER.error(Conversions.exceptionToString(e));
+            LOGGER.error(e);
         }
     }
 

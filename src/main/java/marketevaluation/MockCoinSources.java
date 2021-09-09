@@ -10,7 +10,6 @@ import utils.Consts;
 import utils.Conversions;
 import utils.SingletonFactory;
 
-import java.io.IOException;
 import java.util.List;
 
 public class MockCoinSources implements CoinSources {

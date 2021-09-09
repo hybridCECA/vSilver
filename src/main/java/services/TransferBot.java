@@ -45,7 +45,7 @@ public class TransferBot implements vService {
             transfer();
             LOGGER.info("Transfer bot done");
         } catch (Exception e) {
-            LOGGER.error(Conversions.exceptionToString(e));
+            LOGGER.error(e);
         }
     }
 }

@@ -3,45 +3,45 @@ package nicehash;
 import dataclasses.NicehashAlgorithm;
 import dataclasses.NicehashOrder;
 import org.json.JSONException;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import utils.Config;
 import utils.SingletonFactory;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-class NHApiTest {
+public class NHApiTest {
     private static final String ALGO_NAME = "SHA256";
     private static final String MARKET = "EU";
     private static final int EXPECTED_DOWNSTEP = -1;
     private static final double EXPECTED_MIN_LIMIT = 0.05;
     private static NHApi nhApi;
 
-    @BeforeAll
-    static void loadConfig() {
+    @BeforeClass
+    public static void loadConfig() {
         Config.setDatabaseConfig(System.getenv("database_username"), System.getenv("database_password"), System.getenv("database_url"));
         nhApi = SingletonFactory.getInstance(NHApi.class);
     }
 
     @Test
-    void testOrder() throws JSONException {
+    public void testOrder() throws JSONException {
         List<NicehashOrder> orderbook = nhApi.getOrderbook(ALGO_NAME, MARKET);
         assertTrue(orderbook.size() > 1);
 
         NicehashOrder middleOrder = orderbook.get(orderbook.size() / 2);
         NicehashOrder order = nhApi.getOrder(middleOrder.getId(), ALGO_NAME, MARKET);
         assertEquals(middleOrder.getPrice(), order.getPrice());
-        assertEquals(middleOrder.getSpeed(), order.getSpeed());
+        assertEquals(middleOrder.getSpeed(), order.getSpeed(), 0);
         assertEquals(middleOrder.getId(), order.getId());
-        assertEquals(middleOrder.getLimit(), order.getLimit());
+        assertEquals(middleOrder.getLimit(), order.getLimit(), 0);
     }
 
     @Test
-    void testAlgos() throws JSONException {
+    public void testAlgos() throws JSONException {
         List<NicehashAlgorithm> algoList = nhApi.getAlgoList();
         assertTrue(algoList.size() > 1);
 
@@ -49,22 +49,21 @@ class NHApiTest {
         assertEquals(downStep, EXPECTED_DOWNSTEP);
 
         double minLimit = nhApi.getAlgoBuyInfo(ALGO_NAME).getMinLimit();
-        assertEquals(minLimit, EXPECTED_MIN_LIMIT);
+        assertEquals(minLimit, EXPECTED_MIN_LIMIT, 0);
     }
 
     @Test
-    void testAvailableBTC() throws JSONException {
+    public void testAvailableBTC() throws JSONException {
         double availableBTC = nhApi.getAvailableBTC();
         assertTrue(availableBTC > 0);
     }
 
     @Test
-    void testCompletionRatio() throws JSONException {
-        Map<String, Double> completionRatios = nhApi.getOrderCompletionRatios();
-        for (Map.Entry<String, Double> entry : completionRatios.entrySet()) {
-            double ratio = entry.getValue();
-            assertTrue(ratio > 0);
-            assertTrue(ratio < 1);
+    public void testCompletionRatio() throws JSONException {
+        Map<String, Double> remainingAmounts = nhApi.getOrderRemainingAmounts();
+        for (Map.Entry<String, Double> entry : remainingAmounts.entrySet()) {
+            double remainingAmount = entry.getValue();
+            assertTrue(remainingAmount > 0);
         }
     }
 }

@@ -32,7 +32,7 @@ public class MaxProfitImpl implements MaxProfit {
             updateMaxProfits();
             LOGGER.info("Max profit done");
         } catch (Exception e) {
-            LOGGER.error(Conversions.exceptionToString(e));
+            LOGGER.error(e);
         }
     }
 

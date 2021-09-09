@@ -126,7 +126,7 @@ public class NHApiImpl implements NHApi {
         return set;
     }
 
-    public Map<String, Double> getOrderCompletionRatios() throws JSONException {
+    public Map<String, Double> getOrderRemainingAmounts() throws JSONException {
         String response = api.get("main/api/v2/hashpower/myOrders?active=true&ts=0&op=GT&limit=1000", true, getTime());
         JSONObject json = new JSONObject(response);
         JSONArray orders = json.getJSONArray("list");
@@ -138,9 +138,9 @@ public class NHApiImpl implements NHApi {
             String orderId = order.getString("id");
             double availableAmount = order.getDouble("availableAmount");
             double payedAmount = order.getDouble("payedAmount");
-            double completionRatio = payedAmount / availableAmount;
+            double remainingAmount = availableAmount - payedAmount;
 
-            map.put(orderId, completionRatio);
+            map.put(orderId, remainingAmount);
         }
 
         return map;

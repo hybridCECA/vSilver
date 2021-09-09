@@ -31,6 +31,7 @@ public class BotSynchronizer implements vService {
             try {
                 coinSources.getCoin(coin, algo);
             } catch (Exception e) {
+                LOGGER.info("Filtering out " + bot.getOrderId());
                 iterator.remove();
             }
         }
@@ -57,9 +58,11 @@ public class BotSynchronizer implements vService {
                 // Otherwise record the limit
                 String orderId = newOrder.getOrderId();
                 if (orderLimits.containsKey(orderId)) {
+                    LOGGER.info("Database entry already exists for " + orderId + ", setting limit");
                     double limit = orderLimits.get(orderId);
                     newOrder.setLimit(limit);
                 } else {
+                    LOGGER.info("No database entry for " + orderId);
                     CryptoInvestment investment = new CryptoInvestment(newOrder);
                     ProfitReport report = MarketEvaluator.getProfitReport(investment);
                     double evaluationscore = report.getEvaluationScore();
@@ -75,18 +78,20 @@ public class BotSynchronizer implements vService {
         List<OrderBot> toDelete = new ArrayList<>();
         for (OrderBot bot : orderBots) {
             if (!newActiveOrders.contains(bot)) {
+                LOGGER.info("Deleting " + bot.getOrderId());
                 Connection.deleteOrderInitialData(bot.getOrderId());
                 toDelete.add(bot);
                 maxProfit.unregister(bot);
             }
         }
-        orderBots.removeAll(toDelete);
+        toDelete.forEach(orderBots::remove);
 
         // Clean database stale entries
         for (String id : orderLimits.keySet()) {
             // Matches on id only
             OrderBot searchBot = new OrderBot(id, 0, "", "", "");
             if (!orderBots.contains(searchBot)) {
+                LOGGER.info("Cleaning " + id);
                 Connection.deleteOrderInitialData(id);
             }
         }
@@ -104,7 +109,7 @@ public class BotSynchronizer implements vService {
         try {
             synchronize();
         } catch (Exception e) {
-            LOGGER.error(Conversions.exceptionToString(e));
+            LOGGER.error(e);
         }
     }
 }

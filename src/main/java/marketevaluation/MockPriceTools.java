@@ -2,7 +2,6 @@ package marketevaluation;
 
 import dataclasses.NicehashOrder;
 import nicehash.PriceTools;
-import org.json.JSONException;
 
 import java.util.List;
 

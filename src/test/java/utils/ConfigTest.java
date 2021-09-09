@@ -1,19 +1,19 @@
 package utils;
 
 import database.Connection;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.util.List;
 
-class ConfigTest {
-    @BeforeAll
-    static void loadConfig() {
+public class ConfigTest {
+    @BeforeClass
+    public static void loadConfig() {
         Config.setDatabaseConfig(System.getenv("database_username"), System.getenv("database_password"), System.getenv("database_url"));
     }
 
     @Test
-    void testGetConfigValue() {
+    public void testGetConfigValue() {
         List<String> configConsts = List.of(
                 Consts.ORG_ID,
                 Consts.API_KEY,
@@ -33,7 +33,11 @@ class ConfigTest {
                 Consts.MISC_MAINTAINER_PERIOD_SECONDS,
                 Consts.ALL_DATA_FETCH_STOP,
                 Consts.MARKET_EVALUATION_ANALYZE_MINUTES,
-                Consts.MARKET_EVALUATOR_PERIOD_SECONDS
+                Consts.MARKET_EVALUATOR_PERIOD_SECONDS,
+                Consts.REFILLER_PERIOD_SECONDS,
+                Consts.REFILLER_MAX_REMAINING_AMOUNT,
+                Consts.REFILLER_REFILL_AMOUNT,
+                Consts.REFILLER_MIN_EVALUATION_RATIO
         );
 
         for (String config : configConsts) {

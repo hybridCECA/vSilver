@@ -1,7 +1,6 @@
 package nicehash;
 
 import dataclasses.NicehashOrder;
-import org.json.JSONException;
 
 import java.util.List;
 

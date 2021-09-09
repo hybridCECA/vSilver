@@ -1,9 +1,10 @@
-package nicehash;
+package services;
 
 import database.Connection;
 import dataclasses.PriceRecord;
+import nicehash.OrderBot;
 import org.json.JSONException;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.mockito.MockedStatic;
 import services.MaxProfit;
 import utils.Config;
@@ -12,11 +13,11 @@ import utils.SingletonFactory;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.Mockito.mockStatic;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.*;
 
-class MaxProfitTest {
+public class MaxProfitTest {
     private static final String ALGO = "test_algo";
     private static final String COIN = "test_coin";
     private static final String MARKET = "test_market";
@@ -25,7 +26,7 @@ class MaxProfitTest {
     private static final int ANALYZE_MINUTES = 300;
 
     @Test
-    void testMaxProfit() throws JSONException {
+    public void testMaxProfit() {
         List<PriceRecord> records = List.of(
                 new PriceRecord(1, 1),
                 new PriceRecord(2, 1),
@@ -49,19 +50,20 @@ class MaxProfitTest {
     }
 
     private void runTest(List<PriceRecord> priceRecords, int revenue, int expectedPrice) {
-        try (MockedStatic<Config> mockedConfig = mockStatic(Config.class)) {
+        try (
+            MockedStatic<Config> mockedConfig = mockStatic(Config.class);
+            MockedStatic<Connection> mockedConnection = mockStatic(Connection.class)
+        ) {
             mockedConfig.when(() -> Config.getConfigInt(Consts.MAX_PROFIT_ANALYZE_MINUTES)).thenReturn(ANALYZE_MINUTES);
 
-            try (MockedStatic<Connection> mockedConnection = mockStatic(Connection.class)) {
-                mockedConnection.when(() -> Connection.getPrices(BOT, ANALYZE_MINUTES)).thenReturn(priceRecords);
-                mockedConnection.when(() -> Connection.getCoinRevenue(COIN)).thenReturn(revenue);
+            mockedConnection.when(() -> Connection.getPrices(BOT, ANALYZE_MINUTES)).thenReturn(priceRecords);
+            mockedConnection.when(() -> Connection.getCoinRevenue(COIN)).thenReturn(revenue);
 
-                MaxProfit maxProfit = SingletonFactory.getInstance(MaxProfit.class);
-                maxProfit.register(BOT);
-                assertFalse(maxProfit.hasMaxProfit(BOT));
-                maxProfit.updateMaxProfits();
-                assertEquals(expectedPrice, maxProfit.getMaxProfit(BOT));
-            }
+            MaxProfit maxProfit = SingletonFactory.getInstance(MaxProfit.class);
+            maxProfit.register(BOT);
+            assertFalse(maxProfit.hasMaxProfit(BOT));
+            maxProfit.updateMaxProfits();
+            assertEquals(expectedPrice, maxProfit.getMaxProfit(BOT));
         }
     }
 }

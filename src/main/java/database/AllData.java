@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static test.generated.Tables.*;
-import static test.generated.Tables.ALGO_DATA;
 
 public class AllData {
     private static java.sql.Connection connection = null;

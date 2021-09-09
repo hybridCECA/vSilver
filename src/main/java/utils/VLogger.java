@@ -1,5 +1,7 @@
 package utils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.logging.Logger;
 
 public class VLogger {
@@ -21,6 +23,16 @@ public class VLogger {
         if (enabled) {
             logger.severe(string);
         }
+    }
+
+    public void error(Exception e) {
+        error(exceptionToString(e));
+    }
+
+    private static String exceptionToString(Exception exception) {
+        StringWriter sw = new StringWriter();
+        exception.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
     }
 
     public void disable() {

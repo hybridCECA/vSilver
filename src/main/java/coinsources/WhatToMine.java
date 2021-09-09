@@ -24,13 +24,13 @@ public class WhatToMine {
     private static void addCoins(List<Coin> list, String url) throws IOException, JSONException {
         JSONObject json = JSONHttpApi.readJsonFromUrl(url);
         JSONObject coins = json.getJSONObject("coins");
-        Iterator<String> keys = coins.keys();
+        @SuppressWarnings("unchecked") Iterator<String> keys = coins.keys();
 
         while (keys.hasNext()) {
             String coinName = keys.next();
 
             JSONObject coinObj = coins.getJSONObject(coinName);
-            if (coinObj.getString("tag").toLowerCase().equals("nicehash")) {
+            if (coinObj.getString("tag").equalsIgnoreCase("nicehash")) {
                 continue;
             }
 
@@ -46,7 +46,7 @@ public class WhatToMine {
     }
 
     private static double getCoinUnitProfitability(JSONObject coinObj) throws JSONException {
-        if (coinObj.getString("tag").toLowerCase().equals("btc")) {
+        if (coinObj.getString("tag").equalsIgnoreCase("btc")) {
             coinObj.put("exchange_rate", 1D);
         }
 
@@ -54,7 +54,7 @@ public class WhatToMine {
     }
 
     private static double getProfitabilityFromDifficulty(JSONObject coinObj) throws JSONException {
-        if (coinObj.getString("tag").toLowerCase().equals("btc")) {
+        if (coinObj.getString("tag").equalsIgnoreCase("btc")) {
             coinObj.put("exchange_rate", 1D);
         }
 
